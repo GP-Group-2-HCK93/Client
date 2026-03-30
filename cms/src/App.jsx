@@ -5,6 +5,7 @@ import Register from "./views/auth/Register";
 import Login from "./views/auth/Login";
 import RegisterDoctor from "./views/admin/RegisterDoctor";
 import Home from "./views/user/Home";
+import Dashboard from "./views/doctor/Dashboard";
 
 function App() {
   return <>
@@ -16,6 +17,7 @@ function App() {
     <Route element={<MainLayout/>}>
       <Route path="/" element={<Home/>}></Route>
       <Route path="/doctor-register" element={<RegisterDoctor/>}></Route>
+      <Route path="/doctors/dashboard" element={<Dashboard/>}></Route>
     </Route>
   </Routes>
   </>;
