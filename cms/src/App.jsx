@@ -1,17 +1,21 @@
 import { Routes, Route } from "react-router";
-import "toastify-js/src/toastify.css";
 import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
-
+import Register from "./views/auth/Register";
+import Login from "./views/auth/Login";
+import RegisterDoctor from "./views/admin/RegisterDoctor";
+import Home from "./views/user/Home";
 
 function App() {
   return <>
   <Routes>
     <Route element={<AuthLayout/>}>
-      <Route></Route>
+      <Route path="/register" element={<Register/>}></Route>
+      <Route path="/login" element={<Login/>}></Route>
     </Route>
     <Route element={<MainLayout/>}>
-      <Route></Route>
+      <Route path="/" element={<Home/>}></Route>
+      <Route path="/doctor-register" element={<RegisterDoctor/>}></Route>
     </Route>
   </Routes>
   </>;
