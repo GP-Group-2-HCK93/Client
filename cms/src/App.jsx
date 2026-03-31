@@ -6,6 +6,7 @@ import Login from "./views/auth/Login";
 import RegisterDoctor from "./views/admin/RegisterDoctor";
 import Home from "./views/user/Home";
 import Dashboard from "./views/doctor/Dashboard";
+import Bookings from "./views/doctor/Bookings";
 
 function App() {
   return <>
@@ -18,6 +19,7 @@ function App() {
       <Route path="/" element={<Home/>}></Route>
       <Route path="/doctor-register" element={<RegisterDoctor/>}></Route>
       <Route path="/doctors/dashboard" element={<Dashboard/>}></Route>
+      <Route path="/doctors/bookings" element={<Bookings/>}></Route>
     </Route>
   </Routes>
   </>;
