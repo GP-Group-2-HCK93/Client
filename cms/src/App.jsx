@@ -6,7 +6,7 @@ import Login from "./views/auth/Login";
 import RegisterDoctor from "./views/admin/RegisterDoctor";
 import Home from "./views/user/Home";
 import ChatDoctor from "./views/doctor/ChatDoctor";
-import ChatUser from "./views/user/ChatUser";
+import ChatUser from "./views/user/Chat";
 
 function App() {
   return (

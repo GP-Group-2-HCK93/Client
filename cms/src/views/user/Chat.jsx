@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { socket } from "../../lib/socket";
 
-export default function ChatUser() {
+export default function Chat() {
   const [messageSent, setMessageSent] = useState("");
   const [messages, setMessages] = useState([]);
   const navigate = useNavigate();
