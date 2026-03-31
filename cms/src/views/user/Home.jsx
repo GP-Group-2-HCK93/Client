@@ -1,9 +1,19 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { url } from "../../constants/url";
 import { getUserLocation } from "../../utils/geolocation";
 import DoctorCard from "../../components/DoctorCard";
 import Toastify from "toastify-js";
+import { socket } from "../../lib/socket";
+
+const decodeToken = (token) => {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+};
 
 export default function Home() {
   const [doctors, setDoctors] = useState([]);
@@ -13,15 +23,22 @@ export default function Home() {
   const [bookings, setBookings] = useState([]);
   const [showBookingStatus, setShowBookingStatus] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [complaint, setComplaint] = useState("");
+  const [recommendationLoading, setRecommendationLoading] = useState(false);
+  const [recommendedDoctors, setRecommendedDoctors] = useState([]);
+  const [recommendationMeta, setRecommendationMeta] = useState(null);
 
-  const fetchDoctors = async () => {
+  const fetchDoctors = useCallback(async ({ showLoader = false } = {}) => {
+    if (showLoader) setLoading(true);
     try {
       const { data } = await axios.get(`${url}/doctors`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
+        params: { _t: Date.now() },
+        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
       });
-      setDoctors(data);
+      const latestDoctors = [...data].sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
+      setDoctors(latestDoctors);
     } catch (error) {
       Toastify({
         text: "Gagal mengambil data dokter",
@@ -31,7 +48,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const fetchBookings = async () => {
     try {
@@ -56,16 +73,66 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchDoctors();
+    fetchDoctors({ showLoader: true });
     fetchBookings();
     fetchLocation();
-  }, []);
+  }, [fetchDoctors]);
+
+  useEffect(() => {
+    const handleFocus = () => fetchDoctors();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") fetchDoctors();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    const intervalId = setInterval(() => {
+      fetchDoctors();
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      clearInterval(intervalId);
+    };
+  }, [fetchDoctors]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const user = decodeToken(token);
+    const username = user?.email || user?.name || `guest-${Date.now()}`;
+
+    socket.auth = { username };
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const onDoctorAvailability = (payload) => {
+      const doctorId = Number(payload?.doctorId);
+      if (!doctorId) return;
+
+      if (payload?.isAvailable) {
+        fetchDoctors();
+        return;
+      }
+
+      setDoctors((prev) => prev.filter((doctor) => doctor.id !== doctorId));
+    };
+
+    socket.on("doctor/availability", onDoctorAvailability);
+
+    return () => {
+      socket.off("doctor/availability", onDoctorAvailability);
+    };
+  }, [fetchDoctors]);
 
   const handleBooking = async (doctor) => {
     setSelectedDoctor(doctor);
   };
 
   const confirmBooking = async () => {
+    if (bookingLoading) return;
     try {
       setBookingLoading(true);
       await axios.post(
@@ -105,6 +172,57 @@ export default function Home() {
     return map[status] || "badge-ghost";
   };
 
+  const handleRecommendDoctor = async (e) => {
+    e.preventDefault();
+    try {
+      if (!complaint.trim()) {
+        throw new Error("Keluhan wajib diisi");
+      }
+
+      setRecommendationLoading(true);
+      const { data } = await axios.post(
+        `${url}/ai/recommend-doctor`,
+        { complaint: complaint.trim() },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+
+      setRecommendedDoctors(data.recommendations || []);
+      setRecommendationMeta(data.aiResult || null);
+      Toastify({
+        text: "Rekomendasi dokter berhasil dibuat",
+        duration: 2500,
+        close: true,
+        gravity: "top",
+        position: "center",
+        stopOnFocus: true,
+        style: {
+          background: "#16A34A",
+        },
+      }).showToast();
+    } catch (error) {
+      Toastify({
+        text:
+          error.response?.data?.message ||
+          error.message ||
+          "Gagal mendapatkan rekomendasi dokter",
+        duration: 3000,
+        close: true,
+        gravity: "top",
+        position: "center",
+        stopOnFocus: true,
+        style: {
+          background: "#FF0000",
+        },
+      }).showToast();
+    } finally {
+      setRecommendationLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-base-200 px-6 py-8">
       {/* Header */}
@@ -117,7 +235,7 @@ export default function Home() {
               : "📍 Mengambil lokasi..."}
           </p>
         </div>
-        <button
+        {/* <button
           className="btn btn-outline btn-sm"
           onClick={() => {
             fetchBookings();
@@ -125,7 +243,7 @@ export default function Home() {
           }}
         >
           My Bookings
-        </button>
+        </button> */}
       </div>
 
       {/* Doctor List */}
@@ -148,6 +266,57 @@ export default function Home() {
           ))}
         </div>
       )}
+
+      <div className="max-w-5xl mx-auto mt-8">
+        <div className="card bg-base-100 shadow">
+          <div className="card-body">
+            <h2 className="card-title">AI Rekomendasi Dokter</h2>
+            <form className="space-y-3" onSubmit={handleRecommendDoctor}>
+              <textarea
+                className="textarea textarea-bordered w-full"
+                rows={4}
+                placeholder="Contoh: Saya sakit kepala 3 hari, mual, dan susah tidur."
+                value={complaint}
+                onChange={(e) => setComplaint(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={recommendationLoading}
+              >
+                {recommendationLoading ? "Mencari..." : "Cari Dokter Cocok"}
+              </button>
+            </form>
+            {recommendationMeta ? (
+              <div className="mt-4 space-y-2 rounded-xl border border-base-300 p-3 text-sm">
+                <p>
+                  <span className="font-semibold">Ringkasan:</span>{" "}
+                  {recommendationMeta.summary || "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Confidence:</span>{" "}
+                  {recommendationMeta.confidence || "-"}
+                </p>
+              </div>
+            ) : null}
+
+            {recommendedDoctors.length > 0 ? (
+              <div className="mt-6">
+                <h3 className="font-semibold mb-3">Dokter yang Direkomendasikan</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {recommendedDoctors.map((doctor) => (
+                    <DoctorCard
+                      key={`rec-${doctor.id}`}
+                      doctor={doctor}
+                      onBooking={handleBooking}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
 
       {/* Modal: Confirm Booking */}
       {selectedDoctor && (
