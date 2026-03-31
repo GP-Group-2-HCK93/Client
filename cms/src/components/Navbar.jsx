@@ -28,6 +28,7 @@ export default function Navbar() {
   const token = localStorage.getItem("access_token");
   const user = decodeToken(token);
   const role = user?.role;
+  const canAccessDoctorArea = role === "Doctor" || role === "Admin";
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -62,20 +63,22 @@ export default function Navbar() {
             >
               Home
             </NavLink>
+            {canAccessDoctorArea && (
+              <NavLink
+                to="/doctors/dashboard"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? "bg-indigo-500/20 text-indigo-300"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                  }`
+                }
+              >
+                Doctors
+              </NavLink>
+            )}
             <NavLink
-              to="/doctors"
-              className={({ isActive }) =>
-                `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-500/20 text-indigo-300"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                }`
-              }
-            >
-              Doctors
-            </NavLink>
-            <NavLink
-              to="/my-bookings"
+              to="/doctors/bookings"
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
@@ -155,7 +158,15 @@ export default function Navbar() {
               </li>
               <li>
                 <NavLink
-                  to="/my-bookings"
+                  to="/doctor-register"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
+                >
+                  🏠 Register Doctor
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/doctors/bookings"
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
                 >
                   📋 My Bookings

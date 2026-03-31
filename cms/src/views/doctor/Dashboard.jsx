@@ -22,9 +22,6 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isToggling, setIsToggling] = useState(false);
-  const [chatRoomId, setChatRoomId] = useState("");
-  const [isMatchingDate, setIsMatchingDate] = useState(false);
-  const [aiResult, setAiResult] = useState(null);
 
   const fetchDoctorDashboard = async () => {
     try {
@@ -107,56 +104,6 @@ export default function Dashboard() {
       }).showToast();
     } finally {
       setIsToggling(false);
-    }
-  };
-
-  const handleMatchDate = async (e) => {
-    e.preventDefault();
-    try {
-      if (!chatRoomId) {
-        throw new Error("Chat Room ID is required");
-      }
-
-      setIsMatchingDate(true);
-      const { data } = await axios.post(
-        `${url}/ai/match-date`,
-        { chatRoomId: Number(chatRoomId) },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-
-      setAiResult(data.aiResult);
-      Toastify({
-        text: "AI date matching completed",
-        duration: 2500,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background: "#16A34A",
-        },
-      }).showToast();
-    } catch (error) {
-      Toastify({
-        text:
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to match date with AI",
-        duration: 3000,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background: "#FF0000",
-        },
-      }).showToast();
-    } finally {
-      setIsMatchingDate(false);
     }
   };
 
@@ -279,52 +226,6 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-6">
-            <div className="card bg-base-100 shadow">
-              <div className="card-body">
-                <h2 className="card-title">AI Date Matching</h2>
-                <form className="space-y-3" onSubmit={handleMatchDate}>
-                  <input
-                    type="number"
-                    min="1"
-                    className="input input-bordered w-full"
-                    placeholder="Input Chat Room ID"
-                    value={chatRoomId}
-                    onChange={(e) => setChatRoomId(e.target.value)}
-                  />
-                  <button
-                    type="submit"
-                    className="btn btn-primary w-full"
-                    disabled={isMatchingDate}
-                  >
-                    {isMatchingDate ? "Matching..." : "Match Date with AI"}
-                  </button>
-                </form>
-                {aiResult ? (
-                  <div className="mt-4 space-y-2 rounded-xl border border-base-300 p-3 text-sm">
-                    <p>
-                      <span className="font-semibold">Matched Date:</span>{" "}
-                      {aiResult.matchedDate || "No match"}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Confidence:</span>{" "}
-                      {aiResult.confidence || "-"}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Reason:</span>{" "}
-                      {aiResult.reason || "-"}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Alternatives:</span>{" "}
-                      {Array.isArray(aiResult.alternatives) &&
-                      aiResult.alternatives.length
-                        ? aiResult.alternatives.join(", ")
-                        : "-"}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
             <div className="card bg-base-100 shadow">
               <div className="card-body">
                 <h2 className="card-title">Today's Schedule</h2>
