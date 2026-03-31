@@ -1,110 +1,143 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
-import { socket } from "../../lib/socket";
+import { useNavigate } from "react-router";
+import { url } from "../../constants/url";
 
 export default function Chats() {
-  const [messageSent, setMessageSent] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
+  const [chatRooms, setChatRooms] = useState([]);
+  const navigate = useNavigate();
 
-  const savedUsername =
-    localStorage.getItem("username") ||
-    localStorage.getItem("name") ||
-    localStorage.getItem("email");
-  const username = savedUsername || `guest-${Date.now()}`;
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    const msg = messageSent.trim();
-    if (!msg) return;
-
-    if (!isConnected) {
-      console.error("Socket not connected yet");
-      return;
+  const token = localStorage.getItem("access_token");
+  let currentRole = "User";
+  try {
+    if (token) {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      currentRole = payload.role || "User";
     }
-
-    console.log("Sending:", msg);
-    socket.emit("msg/sent", msg);
-    setMessageSent("");
+  } catch {
+    currentRole = "User";
   }
-  // Setup socket connectionf
-  useEffect(() => {
-    if (!savedUsername) localStorage.setItem("username", username);
 
-    socket.auth = { username };
+  const isDoctor = String(currentRole).toLowerCase() === "doctor";
 
-    socket.on("connect", () => {
-      console.log("✅ Socket connected! ID:", socket.id);
-      setIsConnected(true);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-      setIsConnected(false);
-    });
-
-    socket.on("connect_error", (error) => {
-      console.error("❌ Connection error:", error.message);
-      setIsConnected(false);
-    });
-
-    if (!socket.connected) {
-      socket.connect();
+  const fetchChatRooms = async () => {
+    try {
+      const { data } = await axios.get(`${url}/chats`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
+      console.log(data);
+      setChatRooms(data);
+    } catch (error) {
+      console.log(error);
     }
+  };
 
-    return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-      socket.off("connect_error");
-    };
-  }, [username, savedUsername]);
-
-  // Listen pesan
   useEffect(() => {
-    const onMessage = (payload) => {
-      console.log("📨 Received:", payload);
-      setMessages((prev) => [...prev, payload]);
-    };
-
-    socket.on("msg/all", onMessage);
-
-    return () => {
-      socket.off("msg/all", onMessage);
-    };
+    fetchChatRooms();
   }, []);
 
+  const handleOpenChat = (chatRoomId) => {
+    navigate(`/chatRooms/${chatRoomId}`);
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center w-screen min-h-screen bg-base-200 text-gray-800 p-10">
-      <div className="flex flex-col grow w-full max-w-xl bg-base-100 shadow-xl rounded-lg overflow-hidden">
-        <div className="flex flex-col grow h-0 p-4 overflow-auto">
-          {messages.map((el, idx) => (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">Chats</h1>
+
+      {chatRooms.length === 0 ? (
+        <div className="text-center text-gray-500 py-12">
+          <p className="text-lg">No chats yet</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {chatRooms.map((room) => (
             <div
-              className={`chat ${el.from === username ? "chat-end" : "chat-start"} flex flex-col`}
-              key={idx}
+              key={room.id}
+              onClick={() => handleOpenChat(room.id)}
+              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer p-4"
             >
-              <div>{el.from === username ? "You" : el.from}</div>
-              <div className="chat-bubble chat-bubble-accent">{el.msg}</div>
+              {/* Profile Section */}
+              <div className="flex items-center gap-4 mb-4">
+                {(
+                  isDoctor
+                    ? room?.User?.profilePic
+                    : room?.Doctor?.User?.profilePic
+                ) ? (
+                  <img
+                    src={
+                      isDoctor
+                        ? room?.User?.profilePic
+                        : room?.Doctor?.User?.profilePic
+                    }
+                    alt={isDoctor ? room?.User?.name : room?.Doctor?.User?.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                    {(isDoctor
+                      ? room?.User?.name
+                      : room?.Doctor?.User?.name || "U"
+                    ).charAt(0)}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h2 className="font-semibold text-gray-800">
+                    {isDoctor ? room?.User?.name : room?.Doctor?.User?.name}
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {isDoctor ? room?.User?.email : room?.Doctor?.User?.email}
+                  </p>
+                </div>
+              </div>
+
+              {/* Doctor Info */}
+              <div className="border-t border-gray-200 pt-4">
+                {isDoctor ? (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-semibold">Role:</span> Patient
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">Specialization:</span>{" "}
+                      {room?.Doctor?.specialization}
+                    </p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">Experience:</span>{" "}
+                      {room?.Doctor?.experience} years
+                    </p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">Location:</span>{" "}
+                      {room?.Doctor?.location}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-semibold">Rating:</span>{" "}
+                      <span className="text-yellow-500">
+                        ⭐ {room?.Doctor?.rating}
+                      </span>
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Status Badge */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <span
+                  className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    room.status === "Active"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}
+                >
+                  {room.status}
+                </span>
+              </div>
             </div>
           ))}
         </div>
-
-        <form className="bg-accent p-4 flex flex-row" onSubmit={handleSubmit}>
-          <input
-            value={messageSent}
-            onChange={(e) => setMessageSent(e.target.value)}
-            className="flex items-center w-full rounded px-3"
-            type="text"
-            placeholder="Type your message…"
-            disabled={!isConnected}
-          />
-          <button
-            className="btn btn-base-100 ml-4"
-            type="submit"
-            disabled={!isConnected}
-          >
-            {isConnected ? "Send" : "Connecting..."}
-          </button>
-        </form>
-      </div>
+      )}
     </div>
   );
 }

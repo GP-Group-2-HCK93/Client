@@ -17,11 +17,17 @@ export default function Home() {
   const fetchDoctors = async () => {
     try {
       const { data } = await axios.get(`${url}/doctors`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
       });
       setDoctors(data);
     } catch (error) {
-      Toastify({ text: "Gagal mengambil data dokter", duration: 3000, style: { background: "#FF0000" } }).showToast();
+      Toastify({
+        text: "Gagal mengambil data dokter",
+        duration: 3000,
+        style: { background: "#FF0000" },
+      }).showToast();
     } finally {
       setLoading(false);
     }
@@ -29,8 +35,10 @@ export default function Home() {
 
   const fetchBookings = async () => {
     try {
-      const { data } = await axios.get(`${url}/chats`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+      const { data } = await axios.get(`${url}/bookings`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
       });
       setBookings(data);
     } catch (error) {
@@ -61,15 +69,27 @@ export default function Home() {
     try {
       setBookingLoading(true);
       await axios.post(
-        `${url}/chats`,
+        `${url}/bookings`,
         { DoctorId: selectedDoctor.id },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        },
       );
-      Toastify({ text: "Booking berhasil dikirim!", duration: 3000, style: { background: "#22c55e" } }).showToast();
+      Toastify({
+        text: "Booking berhasil dikirim!",
+        duration: 3000,
+        style: { background: "#22c55e" },
+      }).showToast();
       setSelectedDoctor(null);
       fetchBookings();
     } catch (error) {
-      Toastify({ text: error.response?.data?.message || "Booking gagal", duration: 3000, style: { background: "#FF0000" } }).showToast();
+      Toastify({
+        text: error.response?.data?.message || "Booking gagal",
+        duration: 3000,
+        style: { background: "#FF0000" },
+      }).showToast();
     } finally {
       setBookingLoading(false);
     }
@@ -99,7 +119,10 @@ export default function Home() {
         </div>
         <button
           className="btn btn-outline btn-sm"
-          onClick={() => { fetchBookings(); setShowBookingStatus(true); }}
+          onClick={() => {
+            fetchBookings();
+            setShowBookingStatus(true);
+          }}
         >
           My Bookings
         </button>
@@ -111,11 +134,17 @@ export default function Home() {
           <span className="loading loading-spinner loading-lg text-primary"></span>
         </div>
       ) : doctors.length === 0 ? (
-        <div className="text-center mt-20 text-base-content/50">Tidak ada dokter yang tersedia saat ini.</div>
+        <div className="text-center mt-20 text-base-content/50">
+          Tidak ada dokter yang tersedia saat ini.
+        </div>
       ) : (
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {doctors.map((doctor) => (
-            <DoctorCard key={doctor.id} doctor={doctor} onBooking={handleBooking} />
+            <DoctorCard
+              key={doctor.id}
+              doctor={doctor}
+              onBooking={handleBooking}
+            />
           ))}
         </div>
       )}
@@ -127,18 +156,37 @@ export default function Home() {
             <h3 className="font-bold text-lg">Konfirmasi Booking</h3>
             <p className="py-4">
               Apakah kamu yakin ingin booking dengan{" "}
-              <span className="font-semibold">{selectedDoctor.User?.name}</span>?
+              <span className="font-semibold">{selectedDoctor.User?.name}</span>
+              ?
               <br />
-              <span className="text-sm text-base-content/60">{selectedDoctor.specialization}</span>
+              <span className="text-sm text-base-content/60">
+                {selectedDoctor.specialization}
+              </span>
             </p>
             <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setSelectedDoctor(null)}>Batal</button>
-              <button className="btn btn-primary" onClick={confirmBooking} disabled={bookingLoading}>
-                {bookingLoading ? <span className="loading loading-spinner loading-sm"></span> : "Ya, Booking"}
+              <button
+                className="btn btn-ghost"
+                onClick={() => setSelectedDoctor(null)}
+              >
+                Batal
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={confirmBooking}
+                disabled={bookingLoading}
+              >
+                {bookingLoading ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Ya, Booking"
+                )}
               </button>
             </div>
           </div>
-          <div className="modal-backdrop" onClick={() => setSelectedDoctor(null)}></div>
+          <div
+            className="modal-backdrop"
+            onClick={() => setSelectedDoctor(null)}
+          ></div>
         </div>
       )}
 
@@ -148,25 +196,44 @@ export default function Home() {
           <div className="modal-box max-w-2xl">
             <h3 className="font-bold text-lg mb-4">My Bookings</h3>
             {bookings.length === 0 ? (
-              <p className="text-base-content/50 text-center py-6">Belum ada booking.</p>
+              <p className="text-base-content/50 text-center py-6">
+                Belum ada booking.
+              </p>
             ) : (
               <div className="flex flex-col gap-3">
                 {bookings.map((booking) => (
-                  <div key={booking.id} className="flex items-center justify-between p-4 rounded-xl border border-base-200 bg-base-100">
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between p-4 rounded-xl border border-base-200 bg-base-100"
+                  >
                     <div>
-                      <p className="font-semibold">{booking.Doctor?.User?.name}</p>
-                      <p className="text-sm text-base-content/60">{booking.Doctor?.specialization}</p>
+                      <p className="font-semibold">
+                        {booking.Doctor?.User?.name}
+                      </p>
+                      <p className="text-sm text-base-content/60">
+                        {booking.Doctor?.specialization}
+                      </p>
                     </div>
-                    <span className={`badge ${getStatusBadge(booking.status)}`}>{booking.status}</span>
+                    <span className={`badge ${getStatusBadge(booking.status)}`}>
+                      {booking.status}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
             <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setShowBookingStatus(false)}>Tutup</button>
+              <button
+                className="btn btn-ghost"
+                onClick={() => setShowBookingStatus(false)}
+              >
+                Tutup
+              </button>
             </div>
           </div>
-          <div className="modal-backdrop" onClick={() => setShowBookingStatus(false)}></div>
+          <div
+            className="modal-backdrop"
+            onClick={() => setShowBookingStatus(false)}
+          ></div>
         </div>
       )}
     </div>
