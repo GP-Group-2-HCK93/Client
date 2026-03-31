@@ -27,6 +27,7 @@ export default function Home() {
   const [recommendationLoading, setRecommendationLoading] = useState(false);
   const [recommendedDoctors, setRecommendedDoctors] = useState([]);
   const [recommendationMeta, setRecommendationMeta] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchDoctors = useCallback(async ({ showLoader = false } = {}) => {
     if (showLoader) setLoading(true);
@@ -102,6 +103,8 @@ export default function Home() {
     const token = localStorage.getItem("access_token");
     const user = decodeToken(token);
     const username = user?.email || user?.name || `guest-${Date.now()}`;
+    
+    setCurrentUser(user);
 
     socket.auth = { username };
     if (!socket.connected) {
@@ -128,6 +131,15 @@ export default function Home() {
   }, [fetchDoctors]);
 
   const handleBooking = async (doctor) => {
+    // Check if user is trying to book themselves
+    if (currentUser && currentUser.id === doctor.UserId) {
+      Toastify({
+        text: "Anda tidak bisa booking untuk diri sendiri",
+        duration: 3000,
+        style: { background: "#FF0000" },
+      }).showToast();
+      return;
+    }
     setSelectedDoctor(doctor);
   };
 
@@ -262,6 +274,7 @@ export default function Home() {
               key={doctor.id}
               doctor={doctor}
               onBooking={handleBooking}
+              currentUserId={currentUser?.id}
             />
           ))}
         </div>
@@ -309,6 +322,7 @@ export default function Home() {
                       key={`rec-${doctor.id}`}
                       doctor={doctor}
                       onBooking={handleBooking}
+                      currentUserId={currentUser?.id}
                     />
                   ))}
                 </div>

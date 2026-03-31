@@ -1,4 +1,6 @@
-export default function DoctorCard({ doctor, onBooking }) {
+export default function DoctorCard({ doctor, onBooking, currentUserId }) {
+  const isCurrentUser = currentUserId && currentUserId === doctor.UserId;
+  
   return (
     <div className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow duration-300">
       <div className="card-body p-5">
@@ -42,9 +44,10 @@ export default function DoctorCard({ doctor, onBooking }) {
           <button
             className="btn btn-primary btn-sm"
             onClick={() => onBooking(doctor)}
-            disabled={!doctor.isAvailable}
+            disabled={!doctor.isAvailable || isCurrentUser}
+            title={isCurrentUser ? "Anda tidak bisa booking untuk diri sendiri" : ""}
           >
-            Book Now
+            {isCurrentUser ? "Your Profile" : "Book Now"}
           </button>
         </div>
       </div>

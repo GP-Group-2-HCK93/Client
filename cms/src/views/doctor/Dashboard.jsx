@@ -189,9 +189,9 @@ export default function Dashboard() {
             <div className="card-body">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="card-title">Chat Summary</h2>
-                <span className="badge badge-outline">
+                {/* <span className="badge badge-outline">
                   {summary.totalChats} total chats
-                </span>
+                </span> */}
               </div>
 
               <div className="overflow-x-auto">
@@ -216,7 +216,7 @@ export default function Dashboard() {
                       <td className="font-semibold">{summary.closedChats}</td>
                     </tr>
                     <tr>
-                      <td>Unique Patients</td>
+                      <td>Total Patients</td>
                       <td className="font-semibold">{summary.totalPatients}</td>
                     </tr>
                   </tbody>
@@ -255,9 +255,6 @@ export default function Dashboard() {
                     onClick={() => navigate("/doctors/bookings")}
                   >
                     Open Patient Queue
-                  </button>
-                  <button className="btn btn-outline btn-disabled">
-                    Create Prescription
                   </button>
                 </div>
               </div>

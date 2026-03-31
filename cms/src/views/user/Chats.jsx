@@ -42,17 +42,24 @@ export default function Chats() {
     navigate(`/chatRooms/${chatRoomId}`);
   };
 
+  const visibleChatRooms = [...chatRooms]
+    .filter((room) => room.status === "Accepted" || room.status === "Closed")
+    .sort((a, b) => {
+      const rank = { Accepted: 0, Closed: 1 };
+      return (rank[a.status] ?? 99) - (rank[b.status] ?? 99);
+    });
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Chats</h1>
 
-      {chatRooms.length === 0 ? (
+      {visibleChatRooms.length === 0 ? (
         <div className="text-center text-gray-500 py-12">
           <p className="text-lg">No chats yet</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {chatRooms.map((room) => (
+          {visibleChatRooms.map((room) => (
             <div
               key={room.id}
               onClick={() => handleOpenChat(room.id)}
@@ -126,13 +133,20 @@ export default function Chats() {
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <span
                   className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                    room.status === "Active"
+                    room.status === "Accepted"
                       ? "bg-green-100 text-green-800"
+                      : room.status === "Closed"
+                      ? "bg-gray-300 text-gray-800"
                       : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   {room.status}
                 </span>
+                <p className="text-xs text-gray-500 mt-2">
+                  {room.status === "Closed"
+                    ? "History only - chat is closed"
+                    : "Tap card to open chat"}
+                </p>
               </div>
             </div>
           ))}

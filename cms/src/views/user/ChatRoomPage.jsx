@@ -41,6 +41,10 @@ export default function ChatRoomPage() {
       : chatRoom?.Doctor?.User?.name || "Doctor";
   };
 
+  const statusRaw = String(chatRoom?.status || "").toLowerCase();
+  const isClosed = statusRaw === "closed";
+  const isAccepted = statusRaw === "accepted" || statusRaw === "approved";
+
   const normalizeMessage = (m) => {
     const senderId = Number(m.SenderId ?? m.senderId ?? 0);
     const senderRoleRaw = (m.senderRole ?? m.SenderRole ?? "").toString();
@@ -105,6 +109,7 @@ export default function ChatRoomPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isClosed || !isAccepted) return;
     const text = messageSent.trim();
     if (!text) return;
 
@@ -141,7 +146,7 @@ export default function ChatRoomPage() {
   }, [rawMessages, chatRoom, isDoctor, currentUserId, currentUserName]);
 
   useEffect(() => {
-    if (!chatRoomId) return;
+    if (!chatRoomId || isClosed) return;
 
     const socket = io(url, {
       transports: ["websocket", "polling"],
@@ -181,7 +186,7 @@ export default function ChatRoomPage() {
       socket.emit("room:leave", { chatRoomId: String(chatRoomId) });
       socket.disconnect();
     };
-  }, [chatRoomId, currentUserName, token]);
+  }, [chatRoomId, currentUserName, token, isClosed]);
 
   if (loading) {
     return (
@@ -273,22 +278,28 @@ export default function ChatRoomPage() {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={messageSent}
-            onChange={(e) => setMessageSent(e.target.value)}
-            placeholder="Type a message..."
-            className="input input-bordered w-full bg-gray-800 text-white border-gray-600"
-          />
-          <button
-            type="submit"
-            className={`btn ${isConnected ? "btn-primary" : "btn-disabled"}`}
-            disabled={!isConnected}
-          >
-            Send
-          </button>
-        </form>
+        {isClosed ? (
+          <div className="alert bg-gray-800 border border-gray-700 text-gray-200">
+            This chat is closed. You can only view chat history.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={messageSent}
+              onChange={(e) => setMessageSent(e.target.value)}
+              placeholder="Type a message..."
+              className="input input-bordered w-full bg-gray-800 text-white border-gray-600"
+            />
+            <button
+              type="submit"
+              className={`btn ${isConnected && isAccepted ? "btn-primary" : "btn-disabled"}`}
+              disabled={!isConnected || !isAccepted}
+            >
+              Send
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
