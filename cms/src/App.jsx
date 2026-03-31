@@ -9,6 +9,7 @@ import Dashboard from "./views/doctor/Dashboard";
 import Bookings from "./views/doctor/Bookings";
 import BookingPage from "./views/user/BookingPage";
 import Chat from "./views/user/Chat";
+import Chats from "./views/user/Chats";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />}></Route>
           <Route path="/doctor-register" element={<RegisterDoctor />}></Route>
+          <Route path="/chat" element={<Chats />}></Route>
           <Route path="/doctors/dashboard" element={<Dashboard />}></Route>
           <Route path="/doctors/bookings" element={<Bookings />}></Route>
           <Route path="/booking/:doctorId" element={<BookingPage />} />
