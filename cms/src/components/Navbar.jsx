@@ -92,6 +92,18 @@ export default function Navbar() {
             >
               My Bookings
             </NavLink>
+            <NavLink
+              to="/chats"
+              className={({ isActive }) =>
+                `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-indigo-500/20 text-indigo-300'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              Chats
+            </NavLink>
             {role === 'Admin' && (
               <NavLink
                 to="/admin"
@@ -201,6 +213,14 @@ export default function Navbar() {
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
                 >
                   📋 My Bookings
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/chats"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
+                >
+                  💬 Chats
                 </NavLink>
               </li>
               {role === 'Admin' && (
