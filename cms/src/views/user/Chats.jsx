@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { socket } from "../../lib/socket";
 
-export default function Chat() {
+export default function Chats() {
   const [messageSent, setMessageSent] = useState("");
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
