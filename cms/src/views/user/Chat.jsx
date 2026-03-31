@@ -1,55 +1,76 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import { socket } from "../../lib/socket";
 
 export default function Chat() {
   const [messageSent, setMessageSent] = useState("");
   const [messages, setMessages] = useState([]);
-  const navigate = useNavigate();
+  const [isConnected, setIsConnected] = useState(false);
 
-  const username =
+  const savedUsername =
     localStorage.getItem("username") ||
     localStorage.getItem("name") ||
     localStorage.getItem("email");
+  const username = savedUsername || `guest-${Date.now()}`;
 
   function handleSubmit(e) {
     e.preventDefault();
     const msg = messageSent.trim();
     if (!msg) return;
-    if (!socket.connected) return;
 
-    socket.emit("msg/sent", msg);
-    setMessageSent("");
-  }
-
-  useEffect(() => {
-    if (!username) {
-      navigate("/chat-user", { replace: true });
+    if (!isConnected) {
+      console.error("Socket not connected yet");
       return;
     }
 
+    console.log("Sending:", msg);
+    socket.emit("msg/sent", msg);
+    setMessageSent("");
+  }
+  // Setup socket connectionf
+  useEffect(() => {
+    if (!savedUsername) localStorage.setItem("username", username);
+
     socket.auth = { username };
 
-    const onConnectError = (err) => {
-      console.error("Socket connection error:", err.message);
-    };
+    socket.on("connect", () => {
+      console.log("✅ Socket connected! ID:", socket.id);
+      setIsConnected(true);
+    });
 
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+      setIsConnected(false);
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("❌ Connection error:", error.message);
+      setIsConnected(false);
+    });
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("connect_error");
+    };
+  }, [username, savedUsername]);
+
+  // Listen pesan
+  useEffect(() => {
     const onMessage = (payload) => {
-      if (!payload?.msg) return;
+      console.log("📨 Received:", payload);
       setMessages((prev) => [...prev, payload]);
     };
 
-    socket.on("connect_error", onConnectError);
     socket.on("msg/all", onMessage);
 
-    if (!socket.connected) socket.connect();
-
     return () => {
-      socket.off("connect_error", onConnectError);
       socket.off("msg/all", onMessage);
-      socket.disconnect();
     };
-  }, [navigate, username]);
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center w-screen min-h-screen bg-base-200 text-gray-800 p-10">
@@ -73,9 +94,14 @@ export default function Chat() {
             className="flex items-center w-full rounded px-3"
             type="text"
             placeholder="Type your message…"
+            disabled={!isConnected}
           />
-          <button className="btn btn-base-100 ml-4" type="submit">
-            Send
+          <button
+            className="btn btn-base-100 ml-4"
+            type="submit"
+            disabled={!isConnected}
+          >
+            {isConnected ? "Send" : "Connecting..."}
           </button>
         </form>
       </div>
