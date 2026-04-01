@@ -1,4 +1,8 @@
 import { NavLink, useNavigate } from 'react-router';
+import { useContext } from "react";
+import { FaMoon, FaSun } from "react-icons/fa";
+import { NavLink, useNavigate } from "react-router";
+import { ThemeContext } from "../context/theme.jsx";
 
 const MediNearLogo = () => (
   <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -33,6 +37,8 @@ export default function Navbar() {
   const user = decodeToken(token);
   const role = user?.role;
   const canAccessDoctorArea = role === 'Doctor' || role === 'Admin';
+
+  const { toggleTheme, theme } = useContext(ThemeContext);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
@@ -123,6 +129,18 @@ export default function Navbar() {
 
         {/* Right: Search + Avatar */}
         <div className="flex items-center gap-3">
+          <div>
+            <button
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
+            >
+              {theme === "dark" ? (
+                <FaSun className="w-4 h-4 text-amber-300" />
+              ) : (
+                <FaMoon className="w-4 h-4 text-indigo-300" />
+              )}
+            </button>
+          </div>
           {/* Search */}
           <div className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 w-48 focus-within:border-indigo-500/50 focus-within:bg-white/8 transition-all">
             <svg
@@ -190,6 +208,18 @@ export default function Navbar() {
                 >
                   ✏️
                 </NavLink>
+              </li>
+              <li>
+                <button
+                  onClick={toggleTheme}
+                  className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
+                >
+                  {theme === "dark" ? (
+                    <FaSun className="w-4 h-4 text-amber-300" />
+                  ) : (
+                    <FaMoon className="w-4 h-4 text-indigo-300" />
+                  )}
+                </button>
               </li>
               <li>
                 <NavLink

@@ -1,22 +1,28 @@
-import { Routes, Route, Navigate } from 'react-router';
-import AuthLayout from './layouts/AuthLayout';
-import MainLayout from './layouts/MainLayout';
-import Register from './views/auth/Register';
-import Login from './views/auth/Login';
-import RegisterDoctor from './views/admin/RegisterDoctor';
-import Home from './views/user/Home';
-import Dashboard from './views/doctor/Dashboard';
-import Chats from './views/user/Chats';
-import Bookings from './views/user/BookingPage';
-import BookingPage from './views/user/BookingPage';
-import ChatRoomPage from './views/user/ChatRoomPage';
+import { Routes, Route, Navigate } from "react-router";
+import AuthLayout from "./layouts/AuthLayout";
+import MainLayout from "./layouts/MainLayout";
+import Register from "./views/auth/Register";
+import Login from "./views/auth/Login";
+import RegisterDoctor from "./views/admin/RegisterDoctor";
+import Home from "./views/user/Home";
+import Dashboard from "./views/doctor/Dashboard";
+import Chats from "./views/user/Chats";
+import Bookings from "./views/user/BookingPage";
+import BookingPage from "./views/user/BookingPage";
+import ChatRoomPage from "./views/user/ChatRoomPage";
 import ManageDoctors from './views/admin/ManageDoctors';
 import ManageUsers from './views/admin/ManageUsers';
 import EditProfile from './views/profile/EditProfile';
+import { useContext } from "react";
+import { ThemeContext } from "./context/theme.jsx";
 
 function App() {
+  const { theme } = useContext(ThemeContext);
   return (
-    <>
+    <div
+      className={`min-h-screen p-5 gap-5 flex flex-col items-center justify-center`}
+      data-theme={theme}
+    >
       <Routes>
         <Route element={<AuthLayout />}>
           <Route path="/register" element={<Register />}></Route>
@@ -36,7 +42,7 @@ function App() {
           <Route path="/admin/users" element={<ManageUsers />} />
         </Route>
       </Routes>
-    </>
+    </div>
   );
 }
 
