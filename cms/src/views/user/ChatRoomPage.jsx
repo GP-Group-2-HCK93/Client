@@ -3,10 +3,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { url } from "../../constants/url";
+import { useTranslation } from "react-i18next"; // ADDED: i18n
 
 export default function ChatRoomPage() {
   const { chatRoomId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation(); // ADDED: i18n
 
   const [chatRoom, setChatRoom] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,8 +16,11 @@ export default function ChatRoomPage() {
   const [messages, setMessages] = useState([]);
   const [messageSent, setMessageSent] = useState("");
   const [isConnected, setIsConnected] = useState(false);
+  const [opponentTyping, setOpponentTyping] = useState(false); // ADDED: typing indicator state
 
   const socketRef = useRef(null);
+  const messagesEndRef = useRef(null); // ADDED: auto-scroll ref
+  const typingTimeoutRef = useRef(null); // ADDED: typing debounce ref
 
   const token = localStorage.getItem("access_token");
 
@@ -39,6 +44,38 @@ export default function ChatRoomPage() {
     return isDoctor
       ? chatRoom?.User?.name || "Patient"
       : chatRoom?.Doctor?.User?.name || "Doctor";
+  };
+
+  // ADDED: Get opponent avatar URL
+  const getOpponentAvatar = () => {
+    if (!chatRoom) return null;
+    if (isDoctor) {
+      return (
+        chatRoom?.User?.profilePic ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(chatRoom?.User?.name || "U")}&background=6366f1&color=fff&bold=true&size=40`
+      );
+    }
+    return (
+      chatRoom?.Doctor?.User?.profilePic ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(chatRoom?.Doctor?.User?.name || "D")}&background=6366f1&color=fff&bold=true&size=40`
+    );
+  };
+
+  // ADDED: Get current user avatar URL
+  const getCurrentUserAvatar = () => {
+    const name = currentUserName || "U";
+    // return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&bold=true&size=40`;
+    if (isDoctor) {
+      return (
+        chatRoom?.Doctor?.User?.profilePic ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(chatRoom?.Doctor?.User?.name || "D")}&background=6366f1&color=fff&bold=true&size=40`
+      );
+    } else {
+      return (
+        chatRoom?.User?.profilePic ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(chatRoom?.User?.name || "U")}&background=6366f1&color=fff&bold=true&size=40`
+      );
+    }
   };
 
   const statusRaw = String(chatRoom?.status || "").toLowerCase();
@@ -114,6 +151,12 @@ export default function ChatRoomPage() {
     if (!text) return;
 
     try {
+      // ADDED: Stop typing indicator when sending
+      if (socketRef.current) {
+        socketRef.current.emit("typing:stop", {
+          chatRoomId: String(chatRoomId),
+        });
+      }
       const saved = await saveMessage(text);
       setRawMessages((prev) => {
         const exists = prev.some((x) => String(x.id) === String(saved.id));
@@ -124,6 +167,35 @@ export default function ChatRoomPage() {
       console.error("Failed to save message:", err);
     }
   };
+
+  // ADDED: Handle typing indicator emission
+  const handleInputChange = (e) => {
+    setMessageSent(e.target.value);
+
+    if (socketRef.current && isAccepted && !isClosed) {
+      socketRef.current.emit("typing:start", {
+        chatRoomId: String(chatRoomId),
+        userName: currentUserName,
+      });
+
+      // Clear existing timeout
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+      // Stop typing after 2 seconds of no input
+      typingTimeoutRef.current = setTimeout(() => {
+        if (socketRef.current) {
+          socketRef.current.emit("typing:stop", {
+            chatRoomId: String(chatRoomId),
+          });
+        }
+      }, 2000);
+    }
+  };
+
+  // ADDED: Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, opponentTyping]);
 
   useEffect(() => {
     let mounted = true;
@@ -180,6 +252,21 @@ export default function ChatRoomPage() {
         const exists = prev.some((x) => String(x.id) === String(payload.id));
         return exists ? prev : [...prev, payload];
       });
+      // ADDED: Clear typing indicator when message arrives
+      setOpponentTyping(false);
+    });
+
+    // ADDED: Listen for typing events
+    socket.on("typing:started", (data) => {
+      if (data.chatRoomId === String(chatRoomId)) {
+        setOpponentTyping(true);
+      }
+    });
+
+    socket.on("typing:stopped", (data) => {
+      if (data.chatRoomId === String(chatRoomId)) {
+        setOpponentTyping(false);
+      }
     });
 
     return () => {
@@ -187,6 +274,14 @@ export default function ChatRoomPage() {
       socket.disconnect();
     };
   }, [chatRoomId, currentUserName, token, isClosed]);
+
+  // ADDED: Format time for message timestamps
+  const formatTime = (dateStr) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
 
   if (loading) {
     return (
@@ -199,7 +294,8 @@ export default function ChatRoomPage() {
   return (
     <div className="min-h-screen bg-gray-950 px-6 py-8">
       <div className="max-w-3xl mx-auto flex flex-col gap-4 h-[calc(100vh-8rem)]">
-        <div className="flex items-center gap-4">
+        {/* MODIFIED: Enhanced header with gradient accent */}
+        <div className="flex items-center gap-4 pb-4 border-b border-white/10">
           <button
             onClick={() => navigate(-1)}
             className="btn btn-ghost btn-sm text-gray-400 hover:text-white"
@@ -208,21 +304,28 @@ export default function ChatRoomPage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <img
-              src={
-                !isDoctor
-                  ? chatRoom?.Doctor?.User?.profilePic ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      chatRoom?.Doctor?.User?.name || "D",
-                    )}&background=6366f1&color=fff&bold=true`
-                  : chatRoom?.User?.profilePic ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      chatRoom?.User?.name || "U",
-                    )}&background=6366f1&color=fff&bold=true`
-              }
-              alt="avatar"
-              className="w-9 h-9 rounded-full object-cover"
-            />
+            {/* MODIFIED: Avatar with online indicator */}
+            <div className="relative">
+              <img
+                src={
+                  !isDoctor
+                    ? chatRoom?.Doctor?.User?.profilePic ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        chatRoom?.Doctor?.User?.name || "D",
+                      )}&background=6366f1&color=fff&bold=true`
+                    : chatRoom?.User?.profilePic ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        chatRoom?.User?.name || "U",
+                      )}&background=6366f1&color=fff&bold=true`
+                }
+                alt="avatar"
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-500/30"
+              />
+              {/* ADDED: Online indicator */}
+              {isConnected && !isClosed && (
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-gray-950 rounded-full" />
+              )}
+            </div>
             <div>
               <h1 className="text-white font-semibold">
                 {!isDoctor
@@ -230,7 +333,16 @@ export default function ChatRoomPage() {
                   : chatRoom?.User?.name}
               </h1>
               <p className="text-gray-500 text-sm">
-                {!isDoctor ? chatRoom?.Doctor?.specialization : "Patient"}
+                {/* MODIFIED: Show typing indicator or subtitle */}
+                {opponentTyping ? (
+                  <span className="text-indigo-400 animate-pulse">
+                    {getOpponentName()} {t("isTyping")}
+                  </span>
+                ) : !isDoctor ? (
+                  chatRoom?.Doctor?.specialization
+                ) : (
+                  "Patient"
+                )}
               </p>
             </div>
           </div>
@@ -250,53 +362,133 @@ export default function ChatRoomPage() {
           </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2 bg-gray-900 rounded-lg p-4">
+        {/* MODIFIED: Enhanced message area */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2 bg-gray-900/50 rounded-xl p-4 border border-white/5">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-12">
-              <p>No messages yet. Start the conversation!</p>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </div>
+              <p>{t("noMessages")}</p>
             </div>
           ) : (
             messages.map((m) => (
+              // MODIFIED: Message bubbles with avatar icons (like FB/IG)
               <div
                 key={m.id}
-                className={`chat ${m.isOwn ? "chat-end" : "chat-start"}`}
+                className={`flex items-start gap-2 ${m.isOwn ? "justify-end" : "justify-start"}`}
               >
-                <div className="chat-header text-xs text-gray-400 mb-1">
-                  {m.isOwn ? "You" : m.from}
-                </div>
+                {/* ADDED: Avatar for opponent (left side) */}
+                {!m.isOwn && (
+                  <img
+                    src={getOpponentAvatar()}
+                    alt={m.from}
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 self-start mt-5"
+                  />
+                )}
+
                 <div
-                  className={`chat-bubble ${
-                    m.isOwn
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-700 text-gray-100"
-                  }`}
+                  className={`max-w-[78%] sm:max-w-[70%] min-w-0 ${m.isOwn ? "items-end" : "items-start"}`}
                 >
-                  {m.msg}
+                  {/* MODIFIED: Sender name */}
+                  <p
+                    className={`text-xs text-gray-500 mb-1 ${m.isOwn ? "text-right" : "text-left"}`}
+                  >
+                    {m.isOwn ? "You" : m.from}
+                  </p>
+                  {/* MODIFIED: Enhanced bubble styling */}
+                  <div
+                    className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words [overflow-wrap:anywhere] ${
+                      m.isOwn
+                        ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-br-md"
+                        : "bg-gray-800 text-gray-100 rounded-bl-md border border-white/5"
+                    }`}
+                  >
+                    {m.msg}
+                  </div>
+                  {/* ADDED: Timestamp */}
+                  <p
+                    className={`text-[10px] text-gray-600 mt-1 ${m.isOwn ? "text-right" : "text-left"}`}
+                  >
+                    {formatTime(m.createdAt)}
+                  </p>
                 </div>
+
+                {/* ADDED: Avatar for current user (right side) */}
+                {m.isOwn && (
+                  <img
+                    src={getCurrentUserAvatar()}
+                    alt="You"
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 self-start mt-5"
+                  />
+                )}
               </div>
             ))
           )}
+
+          {/* ADDED: Typing indicator bubble */}
+          {opponentTyping && (
+            <div className="flex items-end gap-2 justify-start">
+              <img
+                src={getOpponentAvatar()}
+                alt="typing"
+                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+              />
+              <div className="bg-gray-800 border border-white/5 rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="flex gap-1.5">
+                  <span
+                    className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0ms" }}
+                  />
+                  <span
+                    className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "150ms" }}
+                  />
+                  <span
+                    className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "300ms" }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ADDED: Auto-scroll anchor */}
+          <div ref={messagesEndRef} />
         </div>
 
         {isClosed ? (
           <div className="alert bg-gray-800 border border-gray-700 text-gray-200">
-            This chat is closed. You can only view chat history.
+            {t("chatClosed")}
           </div>
         ) : (
+          // MODIFIED: Enhanced input area
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
               type="text"
               value={messageSent}
-              onChange={(e) => setMessageSent(e.target.value)}
-              placeholder="Type a message..."
-              className="input input-bordered w-full bg-gray-800 text-white border-gray-600"
+              onChange={handleInputChange} // MODIFIED: Use new handler with typing indicator
+              placeholder={t("typeMessage")}
+              className="input input-bordered w-full bg-gray-800 text-white border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl transition-all"
             />
             <button
               type="submit"
-              className={`btn ${isConnected && isAccepted ? "btn-primary" : "btn-disabled"}`}
+              className={`btn rounded-xl ${isConnected && isAccepted ? "border-0 text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-md shadow-indigo-500/25" : "btn-disabled"}`}
               disabled={!isConnected || !isAccepted}
             >
-              Send
+              {t("send")}
             </button>
           </form>
         )}

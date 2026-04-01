@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import Toastify from "toastify-js";
+import popupToast from "../../components/PopupToast"; // MODIFIED: replaced Toastify with PopupToast
 import { url } from "../../constants/url";
+import { useTranslation } from "react-i18next"; // ADDED: i18n
 
 const HISTORY_ITEMS_PER_PAGE = 6;
 
@@ -37,6 +38,7 @@ export default function BookingPage() {
   const [ratingLoadingId, setRatingLoadingId] = useState(null);
   const [submittedRatings, setSubmittedRatings] = useState({});
   const [historyPage, setHistoryPage] = useState(1);
+  const { t } = useTranslation(); // ADDED: i18n
 
   const dedupeDecisions = (normalizedDecisions) => {
     const seen = new Set();
@@ -93,8 +95,12 @@ export default function BookingPage() {
       userRating: booking.userRating || null,
     }));
 
-    const pending = normalized.filter((booking) => booking.status === "Pending");
-    const decisions = normalized.filter((booking) => booking.status !== "Pending");
+    const pending = normalized.filter(
+      (booking) => booking.status === "Pending",
+    );
+    const decisions = normalized.filter(
+      (booking) => booking.status !== "Pending",
+    );
 
     setBookings(pending);
     setHandledBookings(dedupeDecisions(decisions));
@@ -111,17 +117,10 @@ export default function BookingPage() {
         setIsLoading(true);
         await fetchBookingData();
       } catch (error) {
-        Toastify({
+        popupToast({
           text: error.response?.data?.message || "Failed to load booking data",
-          duration: 3000,
-          close: true,
-          gravity: "top",
-          position: "center",
-          stopOnFocus: true,
-          style: {
-            background: "#DC2626",
-          },
-        }).showToast();
+          type: "error",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -130,13 +129,13 @@ export default function BookingPage() {
     init();
   }, [isDoctor]);
 
-  const pendingBookings = useMemo(
-    () => bookings,
-    [bookings]
-  );
+  const pendingBookings = useMemo(() => bookings, [bookings]);
 
   const totalHistoryPages = useMemo(() => {
-    return Math.max(1, Math.ceil(handledBookings.length / HISTORY_ITEMS_PER_PAGE));
+    return Math.max(
+      1,
+      Math.ceil(handledBookings.length / HISTORY_ITEMS_PER_PAGE),
+    );
   }, [handledBookings]);
 
   const paginatedHandledBookings = useMemo(() => {
@@ -169,39 +168,21 @@ export default function BookingPage() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-        }
+        },
       );
 
       await fetchBookingData();
 
-      Toastify({
+      const toastType = nextStatus === "Rejected" ? "warning" : "success";
+      popupToast({
         text: data.message || `Booking ${nextStatus.toLowerCase()}`,
-        duration: 2200,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background:
-            nextStatus === "Accepted"
-              ? "#16A34A"
-              : nextStatus === "Closed"
-              ? "#6B7280"
-              : "#DC2626",
-        },
-      }).showToast();
+        type: toastType,
+      });
     } catch (error) {
-      Toastify({
+      popupToast({
         text: error.response?.data?.message || "Failed to update booking",
-        duration: 3000,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background: "#DC2626",
-        },
-      }).showToast();
+        type: "error",
+      });
     } finally {
       setProcessingBookingId(null);
     }
@@ -222,20 +203,10 @@ export default function BookingPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      Toastify({
-        text: data.message || "Rating submitted",
-        duration: 2200,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background: "#16A34A",
-        },
-      }).showToast();
+      popupToast({ text: data.message || "Rating submitted", type: "success" });
 
       setSubmittedRatings((prev) => ({
         ...prev,
@@ -249,20 +220,13 @@ export default function BookingPage() {
 
       await fetchBookingData();
     } catch (error) {
-      Toastify({
+      popupToast({
         text:
           error.response?.data?.message ||
           error.message ||
           "Failed to submit rating",
-        duration: 3000,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background: "#DC2626",
-        },
-      }).showToast();
+        type: "error",
+      });
     } finally {
       setRatingLoadingId(null);
     }
@@ -271,10 +235,15 @@ export default function BookingPage() {
   return (
     <div className="min-h-screen bg-base-200 p-4 md:p-8">
       <div className="mx-auto max-w-6xl space-y-6">
-        <div className="rounded-2xl bg-base-100 p-6 shadow">
-          <p className="text-sm opacity-70">{isDoctor ? "Doctor" : "User"}</p>
-          <h1 className="text-2xl font-bold md:text-3xl">
-            {isDoctor ? "Booking Requests" : "My Bookings"}
+        <div className="rounded-2xl bg-base-100 p-6 shadow border border-base-200 overflow-hidden">
+          {/* ADDED: Gradient accent bar */}
+          <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400 -mt-6 -mx-6 mb-6" />
+          <p className="text-sm opacity-70">
+            {isDoctor ? t("doctor") : "User"}
+          </p>
+          <h1 className="text-2xl font-bold md:text-3xl bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
+            {/* MODIFIED: gradient text */}
+            {isDoctor ? t("bookingRequests") : t("myBookings")}
           </h1>
           <p className="mt-1 text-sm opacity-70">
             {isDoctor
@@ -387,8 +356,11 @@ export default function BookingPage() {
                     </thead>
                     <tbody>
                       {paginatedHandledBookings.map((booking) => {
-                        const localSubmittedRating = submittedRatings[booking.id];
-                        const parsedPersistedRating = Number(booking.userRating);
+                        const localSubmittedRating =
+                          submittedRatings[booking.id];
+                        const parsedPersistedRating = Number(
+                          booking.userRating,
+                        );
                         const hasPersistedRating =
                           booking.userRating !== null &&
                           booking.userRating !== undefined &&
@@ -403,84 +375,94 @@ export default function BookingPage() {
                         const ratingToShow = hasPersistedRating
                           ? parsedPersistedRating
                           : hasLocalRating
-                          ? parsedLocalRating
-                          : null;
+                            ? parsedLocalRating
+                            : null;
                         const hasRated = ratingToShow !== null;
 
                         return (
-                        <tr key={booking.id}>
-                          <td>{isDoctor ? booking.patientName : booking.doctorName}</td>
-                          <td>{formatDateTime(booking.decidedAt || booking.requestedAt)}</td>
-                          <td>
-                            <span
-                              className={`badge ${
-                                booking.status === "Accepted"
-                                  ? "badge-success"
-                                  : booking.status === "Closed"
-                                  ? "badge-neutral"
-                                  : "badge-error"
-                              }`}
-                            >
-                              {booking.status}
-                            </span>
-                          </td>
-                          <td>
-                            {isDoctor ? (
-                              booking.status === "Accepted" ? (
-                                <button
-                                  className="btn btn-sm btn-outline"
-                                  onClick={() =>
-                                    handleBookingStatus(booking.id, "Closed")
-                                  }
-                                  disabled={processingBookingId === booking.id}
-                                >
-                                  Mark as Done
-                                </button>
-                              ) : (
-                                "-"
-                              )
-                            ) : booking.status === "Closed" ? (
-                              hasRated ? (
-                                <span className="badge badge-info">
-                                  Rated: {ratingToShow}/5
-                                </span>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <select
-                                    className="select select-bordered select-sm"
-                                    value={ratingInputs[booking.id] || ""}
-                                    onChange={(e) =>
-                                      setRatingInputs((prev) => ({
-                                        ...prev,
-                                        [booking.id]: e.target.value,
-                                      }))
+                          <tr key={booking.id}>
+                            <td>
+                              {isDoctor
+                                ? booking.patientName
+                                : booking.doctorName}
+                            </td>
+                            <td>
+                              {formatDateTime(
+                                booking.decidedAt || booking.requestedAt,
+                              )}
+                            </td>
+                            <td>
+                              <span
+                                className={`badge ${
+                                  booking.status === "Accepted"
+                                    ? "badge-success"
+                                    : booking.status === "Closed"
+                                      ? "badge-neutral"
+                                      : "badge-error"
+                                }`}
+                              >
+                                {booking.status}
+                              </span>
+                            </td>
+                            <td>
+                              {isDoctor ? (
+                                booking.status === "Accepted" ? (
+                                  <button
+                                    className="btn btn-sm btn-outline"
+                                    onClick={() =>
+                                      handleBookingStatus(booking.id, "Closed")
+                                    }
+                                    disabled={
+                                      processingBookingId === booking.id
                                     }
                                   >
-                                    <option value="" disabled>
-                                      Rate
-                                    </option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                  </select>
-                                  <button
-                                    className="btn btn-primary btn-sm"
-                                    onClick={() => submitRating(booking.id)}
-                                    disabled={ratingLoadingId === booking.id}
-                                  >
-                                    {ratingLoadingId === booking.id
-                                      ? "Saving..."
-                                      : "Submit"}
+                                    Mark as Done
                                   </button>
-                                </div>
-                              )
-                            ) : (
-                              "-"
-                            )}
-                          </td>
-                        </tr>
+                                ) : (
+                                  "-"
+                                )
+                              ) : booking.status === "Closed" ? (
+                                hasRated ? (
+                                  <span className="badge badge-info">
+                                    Rated: {ratingToShow}/5
+                                  </span>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <select
+                                      className="select select-bordered select-sm"
+                                      value={ratingInputs[booking.id] || ""}
+                                      onChange={(e) =>
+                                        setRatingInputs((prev) => ({
+                                          ...prev,
+                                          [booking.id]: e.target.value,
+                                        }))
+                                      }
+                                    >
+                                      <option value="" disabled>
+                                        Rate
+                                      </option>
+                                      <option value="1">1</option>
+                                      <option value="2">2</option>
+                                      <option value="3">3</option>
+                                      <option value="4">4</option>
+                                      <option value="5">5</option>
+                                    </select>
+                                    <button
+                                      className="btn btn-primary btn-sm"
+                                      onClick={() => submitRating(booking.id)}
+                                      disabled={ratingLoadingId === booking.id}
+                                    >
+                                      {ratingLoadingId === booking.id
+                                        ? "Saving..."
+                                        : "Submit"}
+                                    </button>
+                                  </div>
+                                )
+                              ) : (
+                                "-"
+                              )}
+                            </td>
+                          </tr>
                         );
                       })}
                     </tbody>

@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { url } from '../../constants/url';
 import { NavLink } from 'react-router';
-import Toastify from 'toastify-js';
+import popupToast from "../../components/PopupToast"; // MODIFIED: replaced Toastify with PopupToast
+import { useTranslation } from 'react-i18next'; // ADDED: i18n
 
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation(); // ADDED: i18n
 
   const fetchUsers = async () => {
     try {
@@ -35,29 +37,11 @@ export default function ManageUsers() {
         },
       });
 
-      Toastify({
-        text: data.message,
-        duration: 3000,
-        close: true,
-        gravity: 'top',
-        position: 'center',
-        style: {
-          background: '#22c55e',
-        },
-      }).showToast();
+      popupToast({ text: data.message, type: "success" });
 
       fetchUsers();
     } catch (error) {
-      Toastify({
-        text: error.response?.data?.message || 'Failed to delete user',
-        duration: 3000,
-        close: true,
-        gravity: 'top',
-        position: 'center',
-        style: {
-          background: '#FF0000',
-        },
-      }).showToast();
+      popupToast({ text: error.response?.data?.message || 'Failed to delete user', type: "error" });
     }
   };
 
@@ -71,19 +55,20 @@ export default function ManageUsers() {
 
   return (
     <>
-      <div className="m-10">
+      {/* MODIFIED: Enhanced admin layout */}
+      <div className="max-w-6xl mx-auto p-6 md:p-10">
         {/* Tab Navigation */}
         <div className="tabs tabs-bordered mb-6">
           <NavLink to="/admin/doctors" className="tab">
-            Manage Doctors
+            {t("manageDoctors")}
           </NavLink>
           <NavLink to="/admin/users" className="tab tab-active">
-            Manage Users
+            {t("manageUsers")}
           </NavLink>
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-semibold">Manage Users</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">{t("manageUsers")}</h1>{/* MODIFIED: gradient text */}
         </div>
 
         <div className="overflow-x-auto rounded-lg border border-base-300">

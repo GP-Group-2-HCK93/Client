@@ -5,6 +5,7 @@ import { NavLink, useNavigate } from "react-router";
 import axios from "axios";
 import { url } from "../constants/url";
 import { ThemeContext } from "../context/theme.jsx";
+import { useTranslation } from "react-i18next"; // ADDED: i18n hook
 
 const MediNearLogo = () => (
   <svg
@@ -59,6 +60,14 @@ export default function Navbar() {
   const [profilePic, setProfilePic] = useState("");
   const canAccessDoctorArea = role === "Doctor";
   const { toggleTheme, theme, setTheme } = useContext(ThemeContext);
+  const { t, i18n } = useTranslation(); // ADDED: i18n
+
+  // ADDED: Language toggle function
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "id" : "en";
+    i18n.changeLanguage(newLang);
+    localStorage.setItem("language", newLang);
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -114,7 +123,7 @@ export default function Navbar() {
                 }`
               }
             >
-              Home
+              {t("home")}
             </NavLink>
             {canAccessDoctorArea && (
               <NavLink
@@ -127,7 +136,7 @@ export default function Navbar() {
                   }`
                 }
               >
-                Doctors
+                {t("doctors")}
               </NavLink>
             )}
             <NavLink
@@ -140,7 +149,7 @@ export default function Navbar() {
                 }`
               }
             >
-              My Bookings
+              {t("myBookings")}
             </NavLink>
             <NavLink
               to="/chats"
@@ -152,13 +161,23 @@ export default function Navbar() {
                 }`
               }
             >
-              Chats
+              {t("chats")}
             </NavLink>
           </nav>
         </div>
 
-        {/* Right: Search + Avatar */}
+        {/* Right: Language + Theme + Avatar */}
         <div className="flex items-center gap-3">
+          {/* ADDED: Language Toggle Button */}
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all duration-200"
+            title={i18n.language === "en" ? "Switch to Indonesian" : "Switch to English"}
+          >
+            <span className="text-sm">{i18n.language === "en" ? "🇬🇧" : "🇮🇩"}</span>
+            <span>{i18n.language === "en" ? "EN" : "ID"}</span>
+          </button>
+
           <div>
             <button
               onClick={toggleTheme}
@@ -228,7 +247,7 @@ export default function Navbar() {
                   to="/"
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
                 >
-                  🏠 Home
+                  🏠 {t("home")}
                 </NavLink>
               </li>
               <li>
@@ -236,7 +255,7 @@ export default function Navbar() {
                   to="/doctor-register"
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
                 >
-                  🏠 Register Doctor
+                  🏠 {t("registerDoctor")}
                 </NavLink>
               </li>
               <li>
@@ -244,7 +263,7 @@ export default function Navbar() {
                   to="/doctors/bookings"
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
                 >
-                  📋 My Bookings
+                  📋 {t("myBookings")}
                 </NavLink>
               </li>
               <li>
@@ -252,7 +271,7 @@ export default function Navbar() {
                   to="/chats"
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
                 >
-                  💬 Chats
+                  💬 {t("chats")}
                 </NavLink>
               </li>
               {role === "Admin" && (
@@ -261,7 +280,7 @@ export default function Navbar() {
                     to="/admin"
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all"
                   >
-                    ⚙ Admin Dashboard
+                    ⚙ {t("adminDashboard")}
                   </NavLink>
                 </li>
               )}
@@ -270,7 +289,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all"
                 >
-                  🚪 Logout
+                  🚪 {t("logout")}
                 </button>
               </li>
             </ul>

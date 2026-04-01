@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Toastify from "toastify-js";
+import popupToast from "../../components/PopupToast"; // MODIFIED: replaced Toastify with PopupToast
 import { useNavigate } from "react-router";
 import { url } from "../../constants/url";
+import { useTranslation } from "react-i18next"; // ADDED: i18n
 
 const todaySchedule = [
   { label: "Morning Session", value: "08:00 - 12:00" },
@@ -22,6 +23,7 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isToggling, setIsToggling] = useState(false);
+  const { t } = useTranslation(); // ADDED: i18n
 
   const fetchDoctorDashboard = async () => {
     try {
@@ -35,17 +37,11 @@ export default function Dashboard() {
       setDoctor(data.doctor);
       setSummary(data.summary);
     } catch (error) {
-      Toastify({
-        text: error.response?.data?.message || "Failed to load doctor dashboard",
-        duration: 3000,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background: "#FF0000",
-        },
-      }).showToast();
+      popupToast({
+        text:
+          error.response?.data?.message || "Failed to load doctor dashboard",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +63,7 @@ export default function Dashboard() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-        }
+        },
       );
 
       setDoctor((prev) =>
@@ -76,32 +72,16 @@ export default function Dashboard() {
               ...prev,
               isAvailable: data.isAvailable,
             }
-          : prev
+          : prev,
       );
 
-      Toastify({
-        text: data.message,
-        duration: 2500,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background: "#16A34A",
-        },
-      }).showToast();
+      const toastType = data.isAvailable ? "success" : "warning";
+      popupToast({ text: data.message, type: toastType });
     } catch (error) {
-      Toastify({
+      popupToast({
         text: error.response?.data?.message || "Failed to update availability",
-        duration: 3000,
-        close: true,
-        gravity: "top",
-        position: "center",
-        stopOnFocus: true,
-        style: {
-          background: "#FF0000",
-        },
-      }).showToast();
+        type: "error",
+      });
     } finally {
       setIsToggling(false);
     }
@@ -116,10 +96,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-base-200 p-4 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div className="rounded-2xl bg-base-100 p-6 shadow">
-          <p className="text-sm opacity-70">Doctor Dashboard</p>
+        <div className="rounded-2xl bg-base-100 p-6 shadow border border-base-200 overflow-hidden">
+          {/* ADDED: Gradient accent bar */}
+          <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400 -mt-6 -mx-6 mb-6" />
+          <p className="text-sm opacity-70">{t("doctorDashboard")}</p>
           <h1 className="mt-1 text-2xl font-bold md:text-3xl">
-            Welcome back, Dr. {doctorName}
+            {t("welcomeBack")}, Dr. {doctorName}
           </h1>
           <p className="mt-2 text-sm opacity-70">
             {doctor?.specialization
@@ -144,8 +126,8 @@ export default function Dashboard() {
               {isToggling
                 ? "Updating..."
                 : doctor?.isAvailable
-                ? "Set Unavailable"
-                : "Set Available"}
+                  ? "Set Unavailable"
+                  : "Set Available"}
             </button>
           </div>
         </div>
@@ -158,27 +140,28 @@ export default function Dashboard() {
         ) : null}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="card bg-primary text-primary-content shadow">
+          {/* MODIFIED: Enhanced stat cards with gradient backgrounds */}
+          <div className="card bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20">
             <div className="card-body">
-              <p className="text-sm opacity-80">Patients Today</p>
+              <p className="text-sm opacity-80">{t("patientsToday")}</p>
               <p className="text-3xl font-bold">{totalPatientsToday}</p>
             </div>
           </div>
-          <div className="card bg-success text-success-content shadow">
+          <div className="card bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
             <div className="card-body">
-              <p className="text-sm opacity-80">Completed</p>
+              <p className="text-sm opacity-80">{t("completed")}</p>
               <p className="text-3xl font-bold">{completedConsultations}</p>
             </div>
           </div>
-          <div className="card bg-warning text-warning-content shadow">
+          <div className="card bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20">
             <div className="card-body">
-              <p className="text-sm opacity-80">Pending Labs</p>
+              <p className="text-sm opacity-80">{t("pendingLabs")}</p>
               <p className="text-3xl font-bold">{pendingLabs}</p>
             </div>
           </div>
-          <div className="card bg-info text-info-content shadow">
+          <div className="card bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/20">
             <div className="card-body">
-              <p className="text-sm opacity-80">Rating</p>
+              <p className="text-sm opacity-80">{t("rating")}</p>
               <p className="text-3xl font-bold">{averageRating}</p>
             </div>
           </div>
@@ -247,7 +230,10 @@ export default function Dashboard() {
               <div className="card-body">
                 <h2 className="card-title">Quick Actions</h2>
                 <div className="grid grid-cols-1 gap-2">
-                  <button className="btn btn-outline" onClick={fetchDoctorDashboard}>
+                  <button
+                    className="btn btn-outline"
+                    onClick={fetchDoctorDashboard}
+                  >
                     Refresh Dashboard
                   </button>
                   <button
@@ -265,4 +251,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
