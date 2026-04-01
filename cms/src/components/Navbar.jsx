@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
+import axios from 'axios';
+import { url } from '../constants/url';
 
 const MediNearLogo = () => (
   <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -32,14 +35,37 @@ export default function Navbar() {
   const token = localStorage.getItem('access_token');
   const user = decodeToken(token);
   const role = user?.role;
+  const [profilePic, setProfilePic] = useState('');
   const canAccessDoctorArea = role === 'Doctor' || role === 'Admin';
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const { data } = await axios.get(`${url}/profile`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+
+        setProfilePic(data.profilePic || '');
+      } catch {
+        setProfilePic('');
+      }
+    };
+
+    if (token) {
+      fetchProfile();
+    }
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     navigate('/login');
   };
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || 'User')}&background=6366f1&color=fff&bold=true`;
+  const avatarUrl =
+    profilePic ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || 'User')}&background=6366f1&color=fff&bold=true`;
 
   return (
     <div className="sticky top-0 z-50 w-full border-b border-white/10 bg-gray-950/95 backdrop-blur-md">
@@ -104,46 +130,11 @@ export default function Navbar() {
             >
               Chats
             </NavLink>
-            {role === 'Admin' && (
-              <NavLink
-                to="/admin"
-                className={({ isActive }) =>
-                  `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-rose-500/20 text-rose-300'
-                      : 'text-rose-400 hover:text-rose-300 hover:bg-rose-500/10'
-                  }`
-                }
-              >
-                ⚙ Admin
-              </NavLink>
-            )}
           </nav>
         </div>
 
         {/* Right: Search + Avatar */}
         <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 w-48 focus-within:border-indigo-500/50 focus-within:bg-white/8 transition-all">
-            <svg
-              className="w-4 h-4 text-gray-500 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search doctor..."
-              className="bg-transparent text-sm text-gray-300 placeholder-gray-600 outline-none w-full"
-            />
-          </div>
 
           {/* Avatar Dropdown */}
           <div className="dropdown dropdown-end">
