@@ -39,7 +39,7 @@ export default function Navbar() {
   const user = decodeToken(token);
   const role = user?.role;
   const [profilePic, setProfilePic] = useState('');
-  const canAccessDoctorArea = role === 'Doctor' || role === 'Admin';
+  const canAccessDoctorArea = role === 'Doctor';
   const { toggleTheme, theme } = useContext(ThemeContext);
   
   useEffect(() => {

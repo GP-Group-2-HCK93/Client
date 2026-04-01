@@ -20,7 +20,6 @@ function App() {
   const { theme } = useContext(ThemeContext);
   return (
     <div
-      className={`min-h-screen p-5 gap-5 flex flex-col items-center justify-center`}
       data-theme={theme}
     >
       <Routes>
