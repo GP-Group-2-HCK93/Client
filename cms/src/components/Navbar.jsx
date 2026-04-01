@@ -1,16 +1,29 @@
 import { useContext } from "react";
 import { FaMoon, FaSun } from "react-icons/fa";
-import { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router';
-import axios from 'axios';
-import { url } from '../constants/url';
+import { useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router";
+import axios from "axios";
+import { url } from "../constants/url";
 import { ThemeContext } from "../context/theme.jsx";
 
 const MediNearLogo = () => (
-  <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="34"
+    height="34"
+    viewBox="0 0 34 34"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <rect width="34" height="34" rx="10" fill="url(#grad)" />
     <defs>
-      <linearGradient id="grad" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="grad"
+        x1="0"
+        y1="0"
+        x2="34"
+        y2="34"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop offset="0%" stopColor="#6366f1" />
         <stop offset="100%" stopColor="#8b5cf6" />
       </linearGradient>
@@ -20,13 +33,18 @@ const MediNearLogo = () => (
       fill="white"
       fillOpacity="0.15"
     />
-    <path d="M17 11V23M11 17H23" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+    <path
+      d="M17 11V23M11 17H23"
+      stroke="white"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 const decodeToken = (token) => {
   try {
-    const payload = token.split('.')[1];
+    const payload = token.split(".")[1];
     return JSON.parse(atob(payload));
   } catch {
     return null;
@@ -35,25 +53,25 @@ const decodeToken = (token) => {
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem("access_token");
   const user = decodeToken(token);
   const role = user?.role;
-  const [profilePic, setProfilePic] = useState('');
-  const canAccessDoctorArea = role === 'Doctor';
-  const { toggleTheme, theme } = useContext(ThemeContext);
-  
+  const [profilePic, setProfilePic] = useState("");
+  const canAccessDoctorArea = role === "Doctor" || role === "Admin";
+  const { toggleTheme, theme, setTheme } = useContext(ThemeContext);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const { data } = await axios.get(`${url}/profile`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
         });
 
-        setProfilePic(data.profilePic || '');
+        setProfilePic(data.profilePic || "");
       } catch {
-        setProfilePic('');
+        setProfilePic("");
       }
     };
 
@@ -63,13 +81,15 @@ export default function Navbar() {
   }, [token]);
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    navigate('/login');
+    setTheme("light");
+    localStorage.removeItem("theme");
+    localStorage.removeItem("access_token");
+    navigate("/login");
   };
 
   const avatarUrl =
     profilePic ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || 'User')}&background=6366f1&color=fff&bold=true`;
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || "User")}&background=6366f1&color=fff&bold=true`;
 
   return (
     <div className="sticky top-0 z-50 w-full border-b border-white/10 bg-gray-950/95 backdrop-blur-md">
@@ -89,8 +109,8 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-indigo-500/20 text-indigo-300'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? "bg-indigo-500/20 text-indigo-300"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`
               }
             >
@@ -102,8 +122,8 @@ export default function Navbar() {
                 className={({ isActive }) =>
                   `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-indigo-500/20 text-indigo-300'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      ? "bg-indigo-500/20 text-indigo-300"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
                   }`
                 }
               >
@@ -115,8 +135,8 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-indigo-500/20 text-indigo-300'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? "bg-indigo-500/20 text-indigo-300"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`
               }
             >
@@ -127,8 +147,8 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-indigo-500/20 text-indigo-300'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? "bg-indigo-500/20 text-indigo-300"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`
               }
             >
@@ -159,12 +179,16 @@ export default function Navbar() {
               role="button"
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
             >
-              <img src={avatarUrl} alt="avatar" className="w-7 h-7 rounded-full" />
+              <img
+                src={avatarUrl}
+                alt="avatar"
+                className="w-7 h-7 rounded-full"
+              />
               <div className="hidden sm:block text-left">
                 <p className="text-xs font-medium text-white leading-none">
-                  {user?.email?.split('@')[0] || 'User'}
+                  {user?.email?.split("@")[0] || "User"}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">{role || 'User'}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{role || "User"}</p>
               </div>
               <svg
                 className="w-3.5 h-3.5 text-gray-500"
@@ -187,7 +211,7 @@ export default function Navbar() {
               <li className="px-3 py-2 border-b border-white/10 mb-1 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-white">
-                    {user?.email?.split('@')[0] || 'User'}
+                    {user?.email?.split("@")[0] || "User"}
                   </p>
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
@@ -198,18 +222,7 @@ export default function Navbar() {
                   ✏️
                 </NavLink>
               </li>
-              <li>
-                <button
-                  onClick={toggleTheme}
-                  className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
-                >
-                  {theme === "dark" ? (
-                    <FaSun className="w-4 h-4 text-amber-300" />
-                  ) : (
-                    <FaMoon className="w-4 h-4 text-indigo-300" />
-                  )}
-                </button>
-              </li>
+
               <li>
                 <NavLink
                   to="/"
@@ -242,7 +255,7 @@ export default function Navbar() {
                   💬 Chats
                 </NavLink>
               </li>
-              {role === 'Admin' && (
+              {role === "Admin" && (
                 <li>
                   <NavLink
                     to="/admin"

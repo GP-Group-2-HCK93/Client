@@ -14,7 +14,6 @@ export default function RegisterDoctor() {
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
   const [preview, setPreview] = useState(null);
-  
 
   const navigate = useNavigate();
 
@@ -70,41 +69,58 @@ export default function RegisterDoctor() {
   };
   return (
     <>
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-12 m-10">
-          <div className="rounded-lg border border-black p-6 shadow-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="min-h-[calc(100vh-4rem)] bg-base-200 py-8 px-4 md:px-8"
+      >
+        <div className="space-y-8">
+          <div className="rounded-2xl border border-base-300 bg-base-100 p-6 md:p-8 shadow-md max-w-5xl mx-auto">
             <div>
-              <h1 className="text-4xl font-semibold text-black flex justify-center">
+              <h1 className="text-4xl font-semibold text-base-content flex justify-center">
                 Add Doctor
               </h1>
             </div>
-            <h2 className="text-base/7 font-semibold text-black">
+            <h2 className="text-base/7 font-semibold text-base-content mt-6">
               Personal Information
             </h2>
-            <h4 className="font-extralight text-(--coastal-muted)">
+            <h4 className="font-extralight text-base-content/60">
               *required field
             </h4>
             <div className="mt-2 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
               <div className="sm:col-span-6">
                 <label
-                  htmlFor="ProfilePic"
-                  className="block text-sm/6 font-medium text-black"
+                  htmlFor="profilePic"
+                  className="block text-sm/6 font-medium text-base-content"
                 >
                   Profile Picture
                 </label>
-                <div className="mt-2 rounded-md border border-dashed border-gray-400 p-4">
+                <div className="mt-2 rounded-xl border border-dashed border-base-300 bg-base-200/60 p-4">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-base-300 bg-base-200 flex items-center justify-center">
                       {preview ? (
-                        <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                        <img
+                          src={preview}
+                          alt="preview"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <svg className="w-8 h-8 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        <svg
+                          className="w-8 h-8 text-base-content/30"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
                         </svg>
                       )}
                     </div>
                     <label className="cursor-pointer">
-                      <span className="rounded-md bg-cyan-400 px-3 py-2 text-sm font-semibold text-black shadow-xs inline-block">
+                      <span className="btn btn-primary btn-sm">
                         {preview ? "Change Photo" : "Upload Photo"}
                       </span>
                       <input
@@ -122,7 +138,7 @@ export default function RegisterDoctor() {
               <div className="sm:col-span-3">
                 <label
                   htmlFor="name"
-                  className="block text-sm/6 font-medium text-black"
+                  className="block text-sm/6 font-medium text-base-content"
                 >
                   Name*
                 </label>
@@ -134,7 +150,7 @@ export default function RegisterDoctor() {
                     onChange={(e) => {
                       setName(e.target.value);
                     }}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-(--coastal-border) placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-(--coastal-primary) sm:text-sm/6"
+                    className="input input-bordered w-full bg-base-100"
                   />
                 </div>
               </div>
@@ -142,7 +158,7 @@ export default function RegisterDoctor() {
               <div className="sm:col-span-3">
                 <label
                   htmlFor="email"
-                  className="block text-sm/6 font-medium text-black"
+                  className="block text-sm/6 font-medium text-base-content"
                 >
                   Email Address*
                 </label>
@@ -154,14 +170,14 @@ export default function RegisterDoctor() {
                     onChange={(e) => {
                       setEmail(e.target.value);
                     }}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-(--coastal-border) placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-(--coastal-primary) sm:text-sm/6"
+                    className="input input-bordered w-full bg-base-100"
                   />
                 </div>
               </div>
               <div className="sm:col-span-3">
                 <label
                   htmlFor="password"
-                  className="block text-sm/6 font-medium text-black"
+                  className="block text-sm/6 font-medium text-base-content"
                 >
                   Password*
                 </label>
@@ -173,14 +189,14 @@ export default function RegisterDoctor() {
                     onChange={(e) => {
                       setPassword(e.target.value);
                     }}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-(--coastal-border) placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-(--coastal-primary) sm:text-sm/6"
+                    className="input input-bordered w-full bg-base-100"
                   />
                 </div>
               </div>
               <div className="sm:col-span-3">
                 <label
                   htmlFor="specialization"
-                  className="block text-sm/6 font-medium text-black"
+                  className="block text-sm/6 font-medium text-base-content"
                 >
                   Specialization*
                 </label>
@@ -192,14 +208,14 @@ export default function RegisterDoctor() {
                     onChange={(e) => {
                       setSpecialization(e.target.value);
                     }}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-(--coastal-border) placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-(--coastal-primary) sm:text-sm/6"
+                    className="input input-bordered w-full bg-base-100"
                   />
                 </div>
               </div>
               <div className="sm:col-span-3">
                 <label
                   htmlFor="experience"
-                  className="block text-sm/6 font-medium text-black"
+                  className="block text-sm/6 font-medium text-base-content"
                 >
                   Experience*
                 </label>
@@ -211,14 +227,14 @@ export default function RegisterDoctor() {
                     onChange={(e) => {
                       setExperience(e.target.value);
                     }}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-(--coastal-border) placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-(--coastal-primary) sm:text-sm/6"
+                    className="input input-bordered w-full bg-base-100"
                   />
                 </div>
               </div>
               <div className="sm:col-span-3">
                 <label
                   htmlFor="bio"
-                  className="block text-sm/6 font-medium text-black"
+                  className="block text-sm/6 font-medium text-base-content"
                 >
                   Bio*
                 </label>
@@ -230,14 +246,14 @@ export default function RegisterDoctor() {
                     onChange={(e) => {
                       setBio(e.target.value);
                     }}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-(--coastal-border) placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-(--coastal-primary) sm:text-sm/6"
+                    className="input input-bordered w-full bg-base-100"
                   />
                 </div>
               </div>
               <div className="sm:col-span-3">
                 <label
                   htmlFor="location"
-                  className="block text-sm/6 font-medium text-black"
+                  className="block text-sm/6 font-medium text-base-content"
                 >
                   Location*
                 </label>
@@ -249,22 +265,16 @@ export default function RegisterDoctor() {
                     onChange={(e) => {
                       setLocation(e.target.value);
                     }}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-(--coastal-border) placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-(--coastal-primary) sm:text-sm/6"
+                    className="input input-bordered w-full bg-base-100"
                   />
                 </div>
               </div>
             </div>
-            <div className="mt-6 flex items-center justify-between gap-x-6">
-              <NavLink
-                to="/"
-                className="rounded-md bg-cyan-400 px-3 py-2 text-sm font-semibold text-black shadow-xs cursor-pointer"
-              >
+            <div className="mt-8 flex items-center justify-between gap-x-4">
+              <NavLink to="/" className="btn btn-ghost border border-base-300">
                 Back
               </NavLink>
-              <button
-                type="submit"
-                className="rounded-md bg-cyan-400 px-3 py-2 text-sm font-semibold text-black shadow-xs cursor-pointer"
-              >
+              <button type="submit" className="btn btn-primary">
                 Submit
               </button>
             </div>
