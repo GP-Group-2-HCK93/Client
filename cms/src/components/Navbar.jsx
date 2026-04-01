@@ -1,7 +1,10 @@
+import { useContext } from "react";
+import { FaMoon, FaSun } from "react-icons/fa";
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import axios from 'axios';
 import { url } from '../constants/url';
+import { ThemeContext } from "../context/theme.jsx";
 
 const MediNearLogo = () => (
   <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -37,7 +40,8 @@ export default function Navbar() {
   const role = user?.role;
   const [profilePic, setProfilePic] = useState('');
   const canAccessDoctorArea = role === 'Doctor' || role === 'Admin';
-
+  const { toggleTheme, theme } = useContext(ThemeContext);
+  
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -135,6 +139,18 @@ export default function Navbar() {
 
         {/* Right: Search + Avatar */}
         <div className="flex items-center gap-3">
+          <div>
+            <button
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
+            >
+              {theme === "dark" ? (
+                <FaSun className="w-4 h-4 text-amber-300" />
+              ) : (
+                <FaMoon className="w-4 h-4 text-indigo-300" />
+              )}
+            </button>
+          </div>
 
           {/* Avatar Dropdown */}
           <div className="dropdown dropdown-end">
@@ -181,6 +197,18 @@ export default function Navbar() {
                 >
                   ✏️
                 </NavLink>
+              </li>
+              <li>
+                <button
+                  onClick={toggleTheme}
+                  className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-all"
+                >
+                  {theme === "dark" ? (
+                    <FaSun className="w-4 h-4 text-amber-300" />
+                  ) : (
+                    <FaMoon className="w-4 h-4 text-indigo-300" />
+                  )}
+                </button>
               </li>
               <li>
                 <NavLink
