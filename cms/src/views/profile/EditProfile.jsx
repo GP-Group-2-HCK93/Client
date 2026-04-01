@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { url } from '../../constants/url';
 import { useNavigate } from 'react-router';
-import Toastify from 'toastify-js';
+import popupToast from "../../components/PopupToast"; // MODIFIED: replaced Toastify with PopupToast
+import { useTranslation } from 'react-i18next'; // ADDED: i18n
 
 export default function EditProfile() {
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,7 @@ export default function EditProfile() {
   });
 
   const navigate = useNavigate();
+  const { t } = useTranslation(); // ADDED: i18n
 
   const fetchProfile = async () => {
     try {
@@ -84,29 +86,11 @@ export default function EditProfile() {
         },
       });
 
-      Toastify({
-        text: 'Profile updated successfully',
-        duration: 3000,
-        close: true,
-        gravity: 'top',
-        position: 'center',
-        style: {
-          background: '#22c55e',
-        },
-      }).showToast();
+      popupToast({ text: 'Profile updated successfully', type: "success" });
 
       navigate('/');
     } catch (error) {
-      Toastify({
-        text: error.response?.data?.message || 'Failed to update profile',
-        duration: 3000,
-        close: true,
-        gravity: 'top',
-        position: 'center',
-        style: {
-          background: '#FF0000',
-        },
-      }).showToast();
+      popupToast({ text: error.response?.data?.message || 'Failed to update profile', type: "error" });
     }
   };
 
@@ -120,8 +104,10 @@ export default function EditProfile() {
 
   return (
     <div className="max-w-2xl mx-auto m-10">
-      <div className="rounded-lg border border-base-300 p-6 shadow-sm">
-        <h1 className="text-3xl font-semibold mb-6 text-center">Edit Profile</h1>
+      {/* MODIFIED: Enhanced card with gradient accent */}
+      <div className="rounded-xl border border-base-200 p-6 shadow-md overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400 -mt-6 -mx-6 mb-6" />{/* ADDED: gradient bar */}
+        <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">{t("editProfile")}</h1>{/* MODIFIED: gradient text */}
 
         {/* Avatar Preview */}
         <div className="flex justify-center mb-6">
@@ -248,8 +234,8 @@ export default function EditProfile() {
             <button type="button" onClick={() => navigate(-1)} className="btn">
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              Save Changes
+            <button type="submit" className="btn border-0 text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-md shadow-indigo-500/25">{/* MODIFIED: gradient button */}
+              {t("saveChanges")}
             </button>
           </div>
         </form>

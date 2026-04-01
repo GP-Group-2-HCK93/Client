@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { url } from "../../constants/url";
-import Toastify from "toastify-js";
+import popupToast from "../../components/PopupToast"; // MODIFIED: replaced Toastify with PopupToast
 
 export default function RegisterDoctor() {
   const [email, setEmail] = useState("");
@@ -52,19 +52,13 @@ export default function RegisterDoctor() {
         },
       });
 
+      popupToast({ text: "Doctor added successfully", type: "success" });
       navigate("/");
     } catch (error) {
-      Toastify({
-        text: error.response?.data?.message,
-        duration: 3000,
-        close: true,
-        gravity: "top", // `top` or `bottom`
-        position: "center", // `left`, `center` or `right`
-        stopOnFocus: true, // Prevents dismissing of toast on hover
-        style: {
-          background: "#FF0000",
-        },
-      }).showToast();
+      popupToast({
+        text: error.response?.data?.message || "Failed to add doctor",
+        type: "error",
+      });
     }
   };
   return (
@@ -74,9 +68,12 @@ export default function RegisterDoctor() {
         className="min-h-[calc(100vh-4rem)] bg-base-200 py-8 px-4 md:px-8"
       >
         <div className="space-y-8">
-          <div className="rounded-2xl border border-base-300 bg-base-100 p-6 md:p-8 shadow-md max-w-5xl mx-auto">
+          <div className="rounded-2xl border border-base-200 bg-base-100 p-6 md:p-8 shadow-md max-w-5xl mx-auto overflow-hidden">
+            {/* ADDED: Gradient accent bar */}
+            <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400 -mt-6 -mx-6 md:-mt-8 md:-mx-8 mb-6" />
             <div>
-              <h1 className="text-4xl font-semibold text-base-content flex justify-center">
+              <h1 className="text-4xl font-bold text-base-content flex justify-center bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
+                {/* MODIFIED: gradient text */}
                 Add Doctor
               </h1>
             </div>
