@@ -4,18 +4,18 @@ import { url } from '../../constants/url';
 import { NavLink } from 'react-router';
 import Toastify from 'toastify-js';
 
-export default function ManageUsers() {
-  const [users, setUsers] = useState([]);
+export default function ManageDoctors() {
+  const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUsers = async () => {
+  const fetchDoctors = async () => {
     try {
-      const { data } = await axios.get(`${url}/users`, {
+      const { data } = await axios.get(`${url}/doctors`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
-      setUsers(data);
+      setDoctors(data);
     } catch (error) {
       console.log(error);
     } finally {
@@ -24,12 +24,12 @@ export default function ManageUsers() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchDoctors();
   }, []);
 
   const handleDelete = async (id) => {
     try {
-      const { data } = await axios.delete(`${url}/users/${id}`, {
+      const { data } = await axios.delete(`${url}/doctors/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
@@ -46,10 +46,10 @@ export default function ManageUsers() {
         },
       }).showToast();
 
-      fetchUsers();
+      fetchDoctors();
     } catch (error) {
       Toastify({
-        text: error.response?.data?.message || 'Failed to delete user',
+        text: error.response?.data?.message || 'Failed to delete doctor',
         duration: 3000,
         close: true,
         gravity: 'top',
@@ -74,16 +74,19 @@ export default function ManageUsers() {
       <div className="m-10">
         {/* Tab Navigation */}
         <div className="tabs tabs-bordered mb-6">
-          <NavLink to="/admin/doctors" className="tab">
+          <NavLink to="/admin/doctors" className="tab tab-active">
             Manage Doctors
           </NavLink>
-          <NavLink to="/admin/users" className="tab tab-active">
+          <NavLink to="/admin/users" className="tab">
             Manage Users
           </NavLink>
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-semibold">Manage Users</h1>
+          <h1 className="text-3xl font-semibold">Manage Doctors</h1>
+          <NavLink to="/doctor-register" className="btn btn-primary">
+            + Add Doctor
+          </NavLink>
         </div>
 
         <div className="overflow-x-auto rounded-lg border border-base-300">
@@ -91,57 +94,44 @@ export default function ManageUsers() {
             <thead>
               <tr className="bg-base-200">
                 <th>No</th>
-                <th>Profile</th>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Role</th>
+                <th>Specialization</th>
+                <th>Experience</th>
+                <th>Location</th>
+                <th>Available</th>
+                <th>Rating</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.length === 0 ? (
+              {doctors.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-4">
-                    No users found
+                  <td colSpan="9" className="text-center py-4">
+                    No doctors found
                   </td>
                 </tr>
               ) : (
-                users.map((user, index) => (
-                  <tr key={user.id}>
+                doctors.map((doctor, index) => (
+                  <tr key={doctor.id}>
                     <td>{index + 1}</td>
-                    <td>
-                      <div className="avatar">
-                        <div className="w-10 rounded-full">
-                          <img
-                            src={
-                              user.profilePic ||
-                              `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`
-                            }
-                            alt={user.name}
-                          />
-                        </div>
-                      </div>
-                    </td>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
+                    <td>{doctor.User?.name}</td>
+                    <td>{doctor.User?.email}</td>
+                    <td>{doctor.specialization}</td>
+                    <td>{doctor.experience} years</td>
+                    <td>{doctor.location}</td>
                     <td>
                       <span
-                        className={`badge ${
-                          user.role === 'Admin'
-                            ? 'badge-error'
-                            : user.role === 'Doctor'
-                              ? 'badge-info'
-                              : 'badge-success'
-                        }`}
+                        className={`badge ${doctor.isAvailable ? 'badge-success' : 'badge-error'}`}
                       >
-                        {user.role}
+                        {doctor.isAvailable ? 'Yes' : 'No'}
                       </span>
                     </td>
+                    <td>{doctor.rating}</td>
                     <td>
                       <button
-                        onClick={() => handleDelete(user.id)}
+                        onClick={() => handleDelete(doctor.id)}
                         className="btn btn-sm btn-error"
-                        disabled={user.role === 'Admin'}
                       >
                         Delete
                       </button>

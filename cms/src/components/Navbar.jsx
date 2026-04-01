@@ -1,23 +1,10 @@
-import { NavLink, useNavigate } from "react-router";
+import { NavLink, useNavigate } from 'react-router';
 
 const MediNearLogo = () => (
-  <svg
-    width="34"
-    height="34"
-    viewBox="0 0 34 34"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="34" height="34" rx="10" fill="url(#grad)" />
     <defs>
-      <linearGradient
-        id="grad"
-        x1="0"
-        y1="0"
-        x2="34"
-        y2="34"
-        gradientUnits="userSpaceOnUse"
-      >
+      <linearGradient id="grad" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse">
         <stop offset="0%" stopColor="#6366f1" />
         <stop offset="100%" stopColor="#8b5cf6" />
       </linearGradient>
@@ -27,18 +14,13 @@ const MediNearLogo = () => (
       fill="white"
       fillOpacity="0.15"
     />
-    <path
-      d="M17 11V23M11 17H23"
-      stroke="white"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    />
+    <path d="M17 11V23M11 17H23" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
   </svg>
 );
 
 const decodeToken = (token) => {
   try {
-    const payload = token.split(".")[1];
+    const payload = token.split('.')[1];
     return JSON.parse(atob(payload));
   } catch {
     return null;
@@ -47,17 +29,17 @@ const decodeToken = (token) => {
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("access_token");
+  const token = localStorage.getItem('access_token');
   const user = decodeToken(token);
   const role = user?.role;
-  const canAccessDoctorArea = role === "Doctor" || role === "Admin";
+  const canAccessDoctorArea = role === 'Doctor' || role === 'Admin';
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    navigate("/login");
+    localStorage.removeItem('access_token');
+    navigate('/login');
   };
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || "User")}&background=6366f1&color=fff&bold=true`;
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || 'User')}&background=6366f1&color=fff&bold=true`;
 
   return (
     <div className="sticky top-0 z-50 w-full border-b border-white/10 bg-gray-950/95 backdrop-blur-md">
@@ -77,8 +59,8 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-indigo-500/20 text-indigo-300"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    ? 'bg-indigo-500/20 text-indigo-300'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`
               }
             >
@@ -90,8 +72,8 @@ export default function Navbar() {
                 className={({ isActive }) =>
                   `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-indigo-500/20 text-indigo-300"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      ? 'bg-indigo-500/20 text-indigo-300'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`
                 }
               >
@@ -103,8 +85,8 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-indigo-500/20 text-indigo-300"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    ? 'bg-indigo-500/20 text-indigo-300'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`
               }
             >
@@ -115,21 +97,21 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-indigo-500/20 text-indigo-300"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    ? 'bg-indigo-500/20 text-indigo-300'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`
               }
             >
               Chats
             </NavLink>
-            {role === "Admin" && (
+            {role === 'Admin' && (
               <NavLink
                 to="/admin"
                 className={({ isActive }) =>
                   `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-rose-500/20 text-rose-300"
-                      : "text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                      ? 'bg-rose-500/20 text-rose-300'
+                      : 'text-rose-400 hover:text-rose-300 hover:bg-rose-500/10'
                   }`
                 }
               >
@@ -170,16 +152,12 @@ export default function Navbar() {
               role="button"
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
             >
-              <img
-                src={avatarUrl}
-                alt="avatar"
-                className="w-7 h-7 rounded-full"
-              />
+              <img src={avatarUrl} alt="avatar" className="w-7 h-7 rounded-full" />
               <div className="hidden sm:block text-left">
                 <p className="text-xs font-medium text-white leading-none">
-                  {user?.email?.split("@")[0] || "User"}
+                  {user?.email?.split('@')[0] || 'User'}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">{role || "User"}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{role || 'User'}</p>
               </div>
               <svg
                 className="w-3.5 h-3.5 text-gray-500"
@@ -199,11 +177,19 @@ export default function Navbar() {
               tabIndex={-1}
               className="dropdown-content mt-2 w-52 rounded-xl border border-white/10 bg-gray-900 shadow-xl p-1.5"
             >
-              <li className="px-3 py-2 border-b border-white/10 mb-1">
-                <p className="text-xs font-semibold text-white">
-                  {user?.email?.split("@")[0] || "User"}
-                </p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
+              <li className="px-3 py-2 border-b border-white/10 mb-1 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-white">
+                    {user?.email?.split('@')[0] || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </div>
+                <NavLink
+                  to="/edit-profile"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  ✏️
+                </NavLink>
               </li>
               <li>
                 <NavLink
@@ -237,7 +223,7 @@ export default function Navbar() {
                   💬 Chats
                 </NavLink>
               </li>
-              {role === "Admin" && (
+              {role === 'Admin' && (
                 <li>
                   <NavLink
                     to="/admin"
