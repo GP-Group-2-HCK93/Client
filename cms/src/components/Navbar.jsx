@@ -1,4 +1,3 @@
-import { NavLink, useNavigate } from 'react-router';
 import { useContext } from "react";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router";

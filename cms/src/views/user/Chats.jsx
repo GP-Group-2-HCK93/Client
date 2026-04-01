@@ -58,13 +58,8 @@ export default function Chats() {
     >
       <h1 className="text-3xl font-bold mb-8">Chats</h1>
 
-<<<<<<< HEAD
       {visibleChatRooms.length === 0 ? (
         <div className="text-center text-gray-500 py-12">
-=======
-      {chatRooms.length === 0 ? (
-        <div className="text-center text-base-content/60 py-12">
->>>>>>> a162e25 (chore:context)
           <p className="text-lg">No chats yet</p>
         </div>
       ) : (
@@ -143,17 +138,11 @@ export default function Chats() {
               <div className="mt-4 pt-4 border-t border-base-300">
                 <span
                   className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-<<<<<<< HEAD
                     room.status === "Accepted"
                       ? "bg-green-100 text-green-800"
                       : room.status === "Closed"
                       ? "bg-gray-300 text-gray-800"
                       : "bg-yellow-100 text-yellow-800"
-=======
-                    room.status === "Active"
-                      ? "bg-success/20 text-success"
-                      : "bg-warning/20 text-warning"
->>>>>>> a162e25 (chore:context)
                   }`}
                 >
                   {room.status}
