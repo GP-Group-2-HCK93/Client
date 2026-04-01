@@ -7,6 +7,8 @@ import Toastify from 'toastify-js';
 export default function EditProfile() {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState('');
+  const [profilePicFile, setProfilePicFile] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     profilePic: '',
@@ -48,26 +50,39 @@ export default function EditProfile() {
     fetchProfile();
   }, []);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setProfilePicFile(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(
-        `${url}/profile`,
-        {
-          name: formData.name,
-          profilePic: formData.profilePic,
-          specialization: formData.specialization,
-          experience: formData.experience,
-          bio: formData.bio,
-          location: formData.location,
-          isAvailable: formData.isAvailable,
+      const payload = new FormData();
+      payload.append('name', formData.name);
+      payload.append('specialization', formData.specialization);
+      payload.append('experience', formData.experience);
+      payload.append('bio', formData.bio);
+      payload.append('location', formData.location);
+      payload.append('isAvailable', formData.isAvailable);
+
+      if (profilePicFile) {
+        payload.append('profilePic', profilePicFile);
+      }
+
+      await axios.put(`${url}/profile`, payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        }
-      );
+      });
 
       Toastify({
         text: 'Profile updated successfully',
@@ -114,6 +129,7 @@ export default function EditProfile() {
             <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
               <img
                 src={
+                  preview ||
                   formData.profilePic ||
                   `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=6366f1&color=fff&size=96`
                 }
@@ -140,14 +156,23 @@ export default function EditProfile() {
 
           <div className="form-control mb-3">
             <label className="label">
-              <span className="label-text">Profile Picture URL</span>
+              <span className="label-text">Profile Picture</span>
             </label>
-            <input
-              type="text"
-              value={formData.profilePic}
-              onChange={(e) => setFormData({ ...formData, profilePic: e.target.value })}
-              className="input input-bordered w-full"
-            />
+            <div className="mt-2 rounded-md border border-dashed border-gray-400 p-4">
+              <div className="flex flex-col items-center gap-3">
+                <label className="cursor-pointer">
+                  <span className="btn btn-outline btn-sm">
+                    {preview ? 'Change Photo' : 'Upload Photo'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              </div>
+            </div>
           </div>
 
           {/* Doctor Fields - only show if role is Doctor */}
