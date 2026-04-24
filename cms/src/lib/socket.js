@@ -1,8 +1,9 @@
 import { io } from "socket.io-client";
+import { url } from "../constants/url";
 
-console.log("Creating socket connection to http://localhost:3000");
+console.log(`Creating socket connection to ${url}`);
 
-export const socket = io("http://localhost:3000", {
+export const socket = io(url, {
   autoConnect: false,
   transports: ["websocket"],
 });
