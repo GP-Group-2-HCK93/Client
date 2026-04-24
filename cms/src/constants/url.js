@@ -1,1 +1,1 @@
-export const url = "https://m99d3xwk-3000.asse.devtunnels.ms";
+export const url = "https://medinear.fauzanr23.com";
